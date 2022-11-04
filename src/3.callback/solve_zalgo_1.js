@@ -2,9 +2,9 @@ const { readFile } = require("fs");
 
 const cache = new Map();
 
-function inconsistentRead(filename, cb) {
+function consistentRead(filename, cb) {
   if (cache.has(filename)) {
-    cb(cache.get(filename));
+    process.nextTick(() => cb(cache.get(filename)));
   } else {
     readFile(filename, "utf8", (err, data) => {
       cache.set(filename, data);
@@ -15,7 +15,7 @@ function inconsistentRead(filename, cb) {
 
 function createFileReader(filename) {
   const listeners = [];
-  inconsistentRead(filename, value => {
+  consistentRead(filename, value => {
     listeners.forEach(listener => listener(value));
   });
 
