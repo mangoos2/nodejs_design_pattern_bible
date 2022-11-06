@@ -1,0 +1,2131 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "//www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="//www.w3.org/1999/xhtml" xml:lang="ko" lang="ko"><head><script>(function(i, s, o, g, r, a, m) {
+    a = s.createElement(o);
+    m = s.getElementsByTagName(o)[0];
+    a.src = g;
+    a.onload = function() {
+        i[r].init('https://js-error-tracer-api.cafe24.com', {"token":"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJocGVyY2VudC5jYWZlMjQuY29tIiwiYXVkIjoianMtZXJyb3ItdHJhY2VyLWFwaS5jYWZlMjQuY29tIiwibWFsbF9pZCI6ImhwZXJjZW50Iiwic2hvcF9ubyI6MSwicGF0aF9yb2xlIjoiTUFJTiIsImxhbmd1YWdlX2NvZGUiOiJrb19LUiIsImNvdW50cnlfY29kZSI6IktSIiwib3JpZ2luIjoiaHR0cHM6XC9cL2hwZXJjZW50LmNvLmtyIiwiaXNfY29udGFpbmVyIjpmYWxzZSwiaG9zdG5hbWUiOiJ1ZTExMDcifQ.K-VQzY6HL0SVwKu7uo_JgfPITufnISKoCF43FukPOdc","collectWindowErrors":true,"preventDuplicateReport":true,"storageKeyPrefix":"EC_JET.MAIN"});
+    };
+    m.parentNode.insertBefore(a, m);
+}(window, document, 'script', '/ind-script/optimizer.php?filename=08_Iz03VNzQq0i8oyk8vSszVLy8v18_MS-EqTi7KLCjRz0oFY57czDyerGIA&type=js&k=f8c449ff82a3977059c3195db755507c2666c339&t=1625595295', 'EC_JET'));</script>
+<script type="text/javascript">window.CAFE24 = window.CAFE24 || {};CAFE24.ROUTE = {"is_mobile":false,"is_need_route":false,"language_code":"ZZ","path":{"origin":"\/","result":"\/","prefix":""},"shop_no":0,"skin_code":"default","support_language_list":{"ar":"ar_EG","ar-EG":"ar_EG","de":"de_DE","de-DE":"de_DE","en":"en_US","en-IN":"en_IN","en-PH":"en_PH","en-US":"en_US","es":"es_ES","es-ES":"es_ES","hi":"hi_IN","hi-IN":"hi_IN","id":"id_ID","id-ID":"id_ID","it":"it_IT","it-IT":"it_IT","ja":"ja_JP","ja-JP":"ja_JP","ko":"ko_KR","ko-KR":"ko_KR","ms":"ms_MY","ms-MY":"ms_MY","pt":"pt_PT","pt-PT":"pt_PT","ru":"ru_RU","ru-RU":"ru_RU","th":"th_TH","th-TH":"th_TH","tr":"tr_TR","tr-TR":"tr_TR","vi":"vi_VN","vi-VN":"vi_VN","zh":"zh_CN","zh-CN":"zh_CN","zh-HK":"zh_HK","zh-MO":"zh_MO","zh-SG":"zh_SG","zh-TW":"zh_TW"}};</script></script><script type="text/javascript">if (typeof EC_ROUTE === "undefined") {
+    /**
+     * 프론트용 라우트 플러그인
+     * @type {{bInit: boolean, init: EC_ROUTE.init}}
+     * CAFE24.ROUTE 참조
+     */
+    var EC_ROUTE = {
+        EC_DOMAIN_PATH_INFO: 'EC_DOMAIN_PATH_INFO',
+        bInit: false,
+        aFromList: [],
+        aToList: [],
+        aCleanFilter: null,
+        init: function () {
+            if (this.bInit || typeof CAFE24.ROUTE === 'undefined') {
+                return;
+            }
+            this.bInit = true;
+            this.aCleanFilter = [
+                /^shop[1-9][0-9]*$/,
+                /^(m|p)$/,
+                new RegExp('^(' + Object.keys(CAFE24.ROUTE.support_language_list).join('|')  + ')$'),
+                /^skin-(base|skin[1-9][0-9]*|mobile[0-9]*)$/,
+            ];
+        },
+        isNeedRoute: function ()
+        {
+            return CAFE24.ROUTE.is_need_route;
+        },
+        /**
+         *
+         * @param iShopNo
+         * @param bMobile
+         * @param sFrontLanguage
+         * @param sSkinCode
+         * @returns {*|string}
+         */
+        getUrlDomain: function (iShopNo, bMobile, sFrontLanguage, sSkinCode)
+        {
+            var oRouteConfig = {};
+            if (typeof iShopNo == 'undefined') {
+                oRouteConfig.shop_no = CAFE24.SDE_SHOP_NUM;
+            } else {
+                oRouteConfig.shop_no = iShopNo;
+            }
+            if (typeof bMobile == 'undefined') {
+                oRouteConfig.is_mobile = false;
+            } else {
+                oRouteConfig.is_mobile = bMobile;
+            }
+            if (typeof sFrontLanguage == 'undefined') {
+                oRouteConfig.language_code = '';
+            }else {
+                oRouteConfig.language_code = sFrontLanguage; // 내부에서 로직으로 동작할땐 언어_지역 형태의 로케일 형태를 따른다.
+            }
+            if (typeof sSkinCode == 'undefined') {
+                oRouteConfig.skin_code = '';
+            }else {
+                oRouteConfig.skin_code = sSkinCode;
+            }
+
+            var sDomain = '';
+            if (oRouteConfig.shop_no != CAFE24.SDE_SHOP_NUM) {
+                // 접근된 다른 멀티샵 도메인 정보는 primary domain 를 조회해야함으로 ajax 를 통해 정보를 얻는다.
+                sDomain = this._getUrlDomainMultishop(oRouteConfig);
+            } else {
+                // 샵이 동일할 경우에는 접근된 domain 에 path 정보만 정리하여 반환함.
+                sDomain = this._getUrlDomain(oRouteConfig);
+            }
+            return sDomain;
+        },
+        _getUrlDomainMultishop: function (oRouteConfig)
+        {
+            var sDomain = '';
+            EC$.ajax({
+                type: 'GET',
+                url: '/exec/front/Shop/Domain',
+                data: {
+                    '_shop_no' : oRouteConfig.shop_no,
+                    'is_mobile' : oRouteConfig.is_mobile,
+                    'language_code' : oRouteConfig.language_code,
+                    'skin_code' : oRouteConfig.skin_code,
+                },
+                async: false,
+                dataType: 'json',
+                cache: true,
+                success: function(oResult) {
+                    switch (oResult.code) {
+                        case '0000' :
+                            sDomain = oResult.data;
+                            break;
+                        default :
+                            break;
+                    }
+                    return false;
+                }
+            });
+            return sDomain;
+        },
+        _getUrlDomain: function (oRouteConfig)
+        {
+            oRouteConfig.domain = this._getCreateHost(oRouteConfig);
+            return location.protocol + '//' + oRouteConfig.domain + this._getCreateUri(oRouteConfig);
+        },
+        _getCreateHost : function (oRouteConfig)
+        {
+            var sHost = location.host;
+            var aHost = sHost.split('.');
+            if (this.isBaseDomain(sHost)) {
+                if (aHost.length > 3) {
+                    aHost[0] = '';
+                }
+            } else if (oRouteConfig.is_mobile) {
+                if (this.isMobileDomain()) {
+                    oRouteConfig.is_mobile = false;
+                }
+            }
+            return aHost.filter(Boolean).join('.');
+        },
+        _getCreateUri: function (oRouteInfo)
+        {
+            var aUrl = [];
+            if (this.isBaseDomain() && oRouteInfo.shop_no > 1) {
+                aUrl.push('shop' + oRouteInfo.shop_no);
+            }
+            if (oRouteInfo.is_mobile) {
+                aUrl.push('m');
+            }
+            if (oRouteInfo.language_code != 'ZZ' && oRouteInfo.language_code != '') {
+                var iIndex = Object.values(CAFE24.ROUTE.support_language_list).indexOf(oRouteInfo.language_code);
+                if (iIndex !== -1) {
+                    aUrl.push(Object.keys(CAFE24.ROUTE.support_language_list)[iIndex]);
+                }
+            }
+            if (this.isBaseDomain() && oRouteInfo.skin_code != 'default' && oRouteInfo.skin_code != '') {
+                aUrl.push('skin-' + oRouteInfo.skin_code);
+            }
+            var sUrl= '/';
+            if (aUrl.length > 0) {
+                sUrl= '/' + aUrl.join('/');
+                sUrl = this.rtrim(sUrl, '/');
+            }
+            return sUrl;
+        },
+        /**
+         * en, en-US => en_US
+         */
+        convertValidLanguageCode: function (sUrlLanguageCode)
+        {
+            if (typeof CAFE24.ROUTE.support_language_list[sUrlLanguageCode] != 'undefined') {
+                return CAFE24.ROUTE.support_language_list[sUrlLanguageCode];
+            }
+            return false;
+        },
+        isMobileDomain: function (sHost)
+        {
+            if (typeof sHost == 'undefined') {
+                sHost = location.host;
+            }
+            var aMatched = sHost.match(/^(m|mobile|skin\-mobile|skin\-mobile[0-9]+[\-]{2}shop[0-9]+|skin\-mobile[0-9]+|mobile[\-]{2}shop[0-9]+)\./i);
+            return aMatched != null;
+        },
+        isBaseDomain: function (sHost)
+        {
+            if (typeof sHost == 'undefined') {
+                sHost = location.host;
+            }
+            return sHost.indexOf(CAFE24.GLOBAL_INFO.getRootDomain()) !== -1;
+        },
+        removePrefixUrl: function (sUrl)
+        {
+            if (this.isNeedRoute()) {
+                sUrl = sUrl.replace(this.getPrefixUrl('/'), '/'); // 자동으로  prefix 붙은 영역을 제거해준다.
+            }
+            return sUrl;
+        },
+        getPrefixUrl: function (sUrl)
+        {
+            if (this.isNeedRoute() === false) {
+                return sUrl;
+            }
+            if (sUrl.indexOf('/') !== 0) {
+                return sUrl;
+            }
+            if (sUrl.match(/^\/{2,}/) !== null) {
+                return sUrl;
+            }
+
+            var iCachedPosition = this.aFromList.indexOf(sUrl);
+            if (iCachedPosition > -1) {
+                return this.aToList[iCachedPosition];
+            }
+
+            var sCleanUrl = this.getCleanUrl(sUrl);
+            var aPrefixPart = CAFE24.ROUTE.path.prefix.split('/');
+            var aUrlPart = sCleanUrl.split('/');
+            var bMatched = true;
+            var sReturnUrl = sCleanUrl;
+            if (aUrlPart.length < aPrefixPart.length) {
+                bMatched = false;
+            } else {
+                for (var i = 0; i < aPrefixPart.length ; i++) {
+                    if (aPrefixPart[i] != aUrlPart[i]) {
+                        bMatched = false;
+                        break;
+                    }
+                }
+            }
+            if (bMatched === false) {
+                this.aFromList.push(sUrl);
+                sReturnUrl = CAFE24.ROUTE.path.prefix +  sCleanUrl;
+                sReturnUrl = sReturnUrl == '/' ? sReturnUrl : this.rtrim(sReturnUrl, '/');
+                this.aToList.push(sReturnUrl);
+            }
+            return sReturnUrl;
+        },
+        /**
+         * document.location.pathname 이 필요할 경우 사용한다.
+         * @returns {*}
+         */
+        getPathName: function()
+        {
+            if (typeof CAFE24.ROUTE.path.result == 'undefined') {
+                return document.location.pathname;
+            }
+            return CAFE24.ROUTE.path.result;
+        },
+        rtrim: function (str, chr)
+        {
+            var rgxtrim = (!chr) ? new RegExp('\\s+$') : new RegExp(chr+'+$');
+            return str.replace(rgxtrim, '');
+        },
+        getShopNo: function ()
+        {
+            return CAFE24.ROUTE.shop_no;
+        },
+        getSkinCode: function ()
+        {
+            return CAFE24.ROUTE.skin_code;
+        },
+        getLanguageCode: function ()
+        {
+            return CAFE24.ROUTE.language_code;
+        },
+        getMobile: function ()
+        {
+            return CAFE24.ROUTE.is_mobile;
+        },
+        getIsMobile: function ()
+        {
+            return CAFE24.ROUTE.is_mobile || CAFE24.ROUTE.skin_code.match(/^mobile[0-9]*$/);
+        },
+        getCleanUrl: function (sUrl)
+        {
+            if (sUrl === '/') {
+                return sUrl;
+            }
+
+            var aUrl = sUrl.split('/');
+            aUrl.shift();
+
+            if (aUrl.length < 1) {
+                return sUrl;
+            }
+
+            // 현재 4 depth 까지 미리보기 기능이 구현되어있음
+            var iPos = 0;
+            var bFind = false;
+            for (var i =0, iCount = aUrl.length; i < iCount ; i++) {
+                bFind = false;
+                for (var iSub = iPos, iSubCount = this.aCleanFilter.length; iSub < iSubCount ; iSub++) {
+                    if (aUrl[i].match(this.aCleanFilter[iSub]) !== null) {
+                        bFind = true;
+                        iPos = iSub + 1;
+                        aUrl[i] = '';
+                        break;
+                    }
+                }
+                if (bFind === false) {
+                    break;
+                }
+            }
+            return '/' + aUrl.filter(Boolean).join('/');
+        },
+        getIsEasyUrl : function ()
+        {
+            return !window.location.pathname.match(/^[\w\/\-\.]+(php|html|htm)$/i);
+        }
+    };
+    EC_ROUTE.init();
+}
+</script><meta http-equiv="Content-Type" content="text/html; charset=utf-8"/><link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,500,600,700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@200;400;600&amp;display=swap" rel="stylesheet"/><link href="https://cdn.jsdelivr.net/npm/xeicon@2.3.3/xeicon.min.css" rel="stylesheet"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><!--PG크로스브라우징필수내용 시작--><meta http-equiv="Cache-Control" content="no-cache"/><meta http-equiv="Expires" content="0"/><meta http-equiv="Pragma" content="no-cache"/><!--PG크로스브라우징필수내용 끝--><!-- <meta property="og:image" content="https://www.hpercent.co.kr/web/upload/hpercent/og_image.jpg" /> --><!-- 디자인바이지원 DB --><!---------------------------------------------------------------------------------------------------------------------------------------------------
+
+  ※ 작업에 사용된 CSS/JS 경로입니다. 원하는 소스 우측에 마우스를 대시면 "파일열기"가 나옵니다.
+  ※ 직접 수정 시 오류가 발생할 수 있으므로, 꼭 수정전 파일을 백업하시길 권합니다.
+  ※ 기타 수정 문의는 아래 사이트 수정문의 게시판에 남겨주시면 됩니다. (기술적인 부분은 따로 안내되지 않습니다.)
+
+
+  ※ d-j.co.kr / 010-4507-5845 [디자인바이지원]
+
+-----------------------------------------------------------------------------------------------------------------------------------------------------><!-- 전체 레이아웃 ->
+    
+
+    <!-- 상품진열 --><!-- 슬라이드 --><!-- 검색창 --><!-- 버튼 --><!-- 애니메이션효과--><!-- JS --><!-- 카페24 기본 파일 --><script type="text/javascript" src="/ec-js/common.js"></script><!-- 해당 JS는 플래시를 사용하기 위한 스크립트입니다. --><script type="text/javascript" src="/_dj/js/jquery-1.7.2.min.js"></script><style>
+        /* 카카오 구매 버튼 */
+        #appPaymentButtonBox {
+        }
+    </style><script src="https://developers.kakao.com/sdk/js/kakao.min.js"></script><script src="https://unpkg.com/fxjs/dist/fx.js"></script><!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-MF39SCF');</script>
+<!-- End Google Tag Manager -->
+
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-DWG3L91GHN"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-DWG3L91GHN');
+</script><meta name="facebook-domain-verification" content="os0ywwotozhrwpkqweal84puhyrc39" />
+
+<meta property="og:site_name" content="헬시퍼센트" />
+<meta property="og:type" content="website" />
+<link rel="shortcut icon" href="/web/upload/favicon-2515953efa6f27decd2f3c383e7f61c9.ico" />
+<script type="text/javascript" src="/app/Eclog/js/cid.generate.js?vs=cc4b5117b62351b59defdbc683f94f2f"></script>
+<script type="text/javascript" src="//wcs.naver.net/wcslog.js"></script>
+<script type="text/javascript">
+window.CAFE24 = window.CAFE24 || {};
+CAFE24.MANIFEST_CACHE_REVISION = '2211021144';
+CAFE24.getDeprecatedNamespace = function(sDeprecatedNamespace, sSupersededNamespace) {
+var sNamespace = sSupersededNamespace 
+? sSupersededNamespace 
+: sDeprecatedNamespace.replace(/^EC_/, '');
+return CAFE24[sNamespace];
+}
+CAFE24.FRONT_LANGUAGE_CODE = "ko_KR";
+CAFE24.MOBILE = false;
+CAFE24.MOBILE_DEVICE = false;
+CAFE24.MOBILE_USE = true;
+var EC_MOBILE = CAFE24.MOBILE;
+var EC_MOBILE_DEVICE = CAFE24.MOBILE_DEVICE;
+var EC_MOBILE_USE = CAFE24.MOBILE_USE;
+CAFE24.SKIN_CODE = "skin3";
+CAFE24.FRONT_EXTERNAL_SCRIPT_VARIABLE_DATA = {"common_member_id_crypt":"","common_member_email":false,"common_member_zipcode":false,"common_member_mobile":false};
+var EC_FRONT_EXTERNAL_SCRIPT_VARIABLE_DATA = CAFE24.getDeprecatedNamespace('EC_FRONT_EXTERNAL_SCRIPT_VARIABLE_DATA');
+CAFE24.SDE_SHOP_NUM = 1;CAFE24.SHOP = {getLanguage : function() { return "ko_KR"; },getCurrency : function() { return "KRW"; },getFlagCode : function() { return "KR"; },getTimezone: function() { return "Asia/Seoul" },getDateFormat: function() { return "Y-m-d" },isMultiShop : function() { return false; },isDefaultShop : function() { return true; },isDefaultLanguageShop : function(sLanguageCode) { return SHOP.isDefaultShop() && SHOP.isLanguageShop(sLanguageCode); },isKR : function() { return true; },isUS : function() { return false; },isJP : function() { return false; },isCN : function() { return false; },isTW : function() { return false; },isES : function() { return false; },isPT : function() { return false; },isVN : function() { return false; },isPH : function() { return false; },getCountryAndLangMap : function() { return {
+"KR": "ko_KR",
+"US": "en_US",
+"JP": "ja_JP",
+"CN": "zh_CN",
+"TW": "zh_TW",
+"VN": "vi_VN",
+"PH": "en_PH"
+}},isLanguageShop : function(sLanguageCode) { return sLanguageCode === "ko_KR"; },getDefaultShopNo : function() { return 1; },getProductVer : function() { return 2; },isSDE : function() { return true; },isMode : function() {return false; },getModeName : function() {return false; },isMobileAdmin : function() {return false; },isNewProMode : function() {return true; },isExperienceMall : function() { return false; },getAdminID : function() {return ''},getMallID : function() {return 'hpercent'},getCurrencyFormat : function(sPriceTxt, bIsNumberFormat) { 
+sPriceTxt = String(sPriceTxt);
+var aCurrencySymbol = ["","\uc6d0",false];
+if (typeof CAFE24.SHOP_PRICE !== 'undefined' && isNaN(sPriceTxt.replace(/[,]/gi, '')) === false && bIsNumberFormat === true) {
+// bIsNumberFormat 사용하려면 Ui(':libUipackCurrency')->plugin('Currency') 화폐 라이브러리 추가 필요
+sPriceTxt = CAFE24.SHOP_PRICE.toShopPrice(sPriceTxt.replace(/[,]/gi, ''), true, CAFE24.SDE_SHOP_NUM);
+}
+try {
+var sPlusMinusSign = (sPriceTxt.toString()).substr(0, 1);
+if (sPlusMinusSign === '-' || sPlusMinusSign === '+') {
+sPriceTxt = (sPriceTxt.toString()).substr(1);
+return sPlusMinusSign + aCurrencySymbol[0] + sPriceTxt + aCurrencySymbol[1];
+} else {
+return aCurrencySymbol[0] + sPriceTxt + aCurrencySymbol[1];
+}
+} catch (e) {
+return aCurrencySymbol[0] + sPriceTxt + aCurrencySymbol[1];
+}
+}};CAFE24.CURRENCY_INFO = {getOriginReferenceCurrency : function() {return 'USD'},getCurrencyList : function(sCurrencyCode) { var aCurrencyList = {"JPY":{"currency_symbol":"&yen;","decimal_place":0,"round_method_type":"F"},"VND":{"currency_symbol":"&#8363;","decimal_place":0,"round_method_type":"F"},"PHP":{"currency_symbol":"&#8369;","decimal_place":2,"round_method_type":"R"},"USD":{"currency_symbol":"$","decimal_place":2,"round_method_type":"R"},"CNY":{"currency_symbol":"&yen;","decimal_place":2,"round_method_type":"R"},"TWD":{"currency_symbol":"NT$","decimal_place":0,"round_method_type":"F"},"EUR":{"currency_symbol":"\u20ac","decimal_place":2,"round_method_type":"R"},"BRL":{"currency_symbol":"R$","decimal_place":2,"round_method_type":"R"},"AUD":{"currency_symbol":"A$","decimal_place":2,"round_method_type":"R"},"BHD":{"currency_symbol":".&#1583;.&#1576;","decimal_place":3,"round_method_type":"R"},"BDT":{"currency_symbol":"&#2547;","decimal_place":2,"round_method_type":"R"},"GBP":{"currency_symbol":"&pound;","decimal_place":2,"round_method_type":"R"},"CAD":{"currency_symbol":"C$","decimal_place":2,"round_method_type":"R"},"CZK":{"currency_symbol":"K&#269;","decimal_place":2,"round_method_type":"R"},"DKK":{"currency_symbol":"kr","decimal_place":2,"round_method_type":"R"},"HKD":{"currency_symbol":"HK$","decimal_place":2,"round_method_type":"R"},"HUF":{"currency_symbol":"Ft","decimal_place":2,"round_method_type":"R"},"INR":{"currency_symbol":"&#8377;","decimal_place":2,"round_method_type":"R"},"IDR":{"currency_symbol":"Rp","decimal_place":2,"round_method_type":"R"},"ILS":{"currency_symbol":"&#8362;","decimal_place":2,"round_method_type":"R"},"JOD":{"currency_symbol":" &#1583;&#1610;&#1606;&#1575;&#1585;","decimal_place":3,"round_method_type":"R"},"KWD":{"currency_symbol":"&#1583;&#1610;&#1606;&#1575;&#1585;","decimal_place":3,"round_method_type":"R"},"MYR":{"currency_symbol":"RM","decimal_place":2,"round_method_type":"R"},"MXN":{"currency_symbol":"Mex$","decimal_place":2,"round_method_type":"R"},"NZD":{"currency_symbol":"NZ$","decimal_place":2,"round_method_type":"R"},"NOK":{"currency_symbol":"kr","decimal_place":2,"round_method_type":"R"},"PKR":{"currency_symbol":"&#8360;","decimal_place":2,"round_method_type":"R"},"PLN":{"currency_symbol":"z\u0142","decimal_place":2,"round_method_type":"R"},"RUB":{"currency_symbol":"\u0440\u0443\u0431","decimal_place":2,"round_method_type":"R"},"SAR":{"currency_symbol":"&#65020;","decimal_place":2,"round_method_type":"R"},"SGD":{"currency_symbol":"S$","decimal_place":2,"round_method_type":"R"},"ZAR":{"currency_symbol":"R","decimal_place":2,"round_method_type":"R"},"SEK":{"currency_symbol":"kr","decimal_place":2,"round_method_type":"R"},"CHF":{"currency_symbol":"Fr","decimal_place":2,"round_method_type":"R"},"THB":{"currency_symbol":"&#3647;","decimal_place":2,"round_method_type":"R"},"TRY":{"currency_symbol":"TL","decimal_place":2,"round_method_type":"R"},"AED":{"currency_symbol":"&#1601;&#1604;&#1587;","decimal_place":2,"round_method_type":"R"}}; return aCurrencyList[sCurrencyCode] },isUseReferenceCurrency : function() {return false }};CAFE24.COMMON_UTIL = {convertSslForString : function(sString) { return sString.replace(/http:/gi, '');},convertSslForHtml : function(sHtml) { return sHtml.replace(/((?:src|href)\s*=\s*['"])http:(\/\/(?:[a-z0-9\-_\.]+)\/)/ig, '$1$2');},getProtocol : function() { return 'https'; },moveSsl : function() { if (CAFE24.COMMON_UTIL.getProtocol() === 'http') { var oLocation = jQuery(window.location); var sUrl = 'https://' + oLocation.attr('host') + oLocation.attr('pathname') + oLocation.attr('search'); window.location.replace(sUrl); } },setEcCookie : function(sKey, sValue, iExpire) {var exdate = new Date();exdate.setDate(exdate.getDate() + iExpire);var setValue = escape(sValue) + "; domain=." + CAFE24.GLOBAL_INFO.getBaseDomain() + "; path=/;expires=" + exdate.toUTCString();document.cookie = sKey + "=" + setValue;}};CAFE24.SHOP_LIB_INFO = {getBankInfo : function() { 
+var oBankInfo = "";
+$.ajax({
+type: "GET",
+url: "/exec/front/Shop/Bankinfo",
+dataType: "json",
+async: false,
+success: function(oResponse) {
+oBankInfo = oResponse;
+}
+});
+return oBankInfo; }};            var EC_SDE_SHOP_NUM = CAFE24.SDE_SHOP_NUM;
+var SHOP = CAFE24.getDeprecatedNamespace('SHOP');
+var EC_COMMON_UTIL = CAFE24.getDeprecatedNamespace('EC_COMMON_UTIL');
+var EC_SHOP_LIB_INFO = CAFE24.getDeprecatedNamespace('EC_SHOP_LIB_INFO');
+var EC_CURRENCY_INFO = CAFE24.getDeprecatedNamespace('EC_CURRENCY_INFO');
+CAFE24.ROOT_DOMAIN = "cafe24.com";
+CAFE24.API_DOMAIN = "cafe24api.com";
+CAFE24.TRANSLATE_LOG_STATUS = "F";
+CAFE24.GLOBAL_INFO = (function() {
+var oData = {"base_domain":"hpercent.cafe24.com","root_domain":"cafe24.com","api_domain":"cafe24api.com","is_global":false,"is_global_standard":false,"country_code":"KR","language_code":"ko_KR","admin_language_code":"ko_KR"};
+return {
+getBaseDomain: function() {
+return oData['base_domain'];
+},
+getRootDomain: function() {
+return oData['root_domain'];
+},
+getApiDomain: function() {
+return oData['api_domain'];
+},
+isGlobal: function() {
+return oData['is_global'];
+},
+isGlobalStandard: function() {
+return oData['is_global_standard'];
+},
+getCountryCode: function() {
+return oData['country_code'];
+},
+getLanguageCode: function() {
+return oData['language_code'];
+},
+getAdminLanguageCode: function() {
+return oData['admin_language_code'];
+}
+};
+})();
+var EC_ROOT_DOMAIN = CAFE24.ROOT_DOMAIN;
+var EC_API_DOMAIN = CAFE24.API_DOMAIN;
+var EC_TRANSLATE_LOG_STATUS = CAFE24.TRANSLATE_LOG_STATUS;
+var EC_GLOBAL_INFO = CAFE24.getDeprecatedNamespace('EC_GLOBAL_INFO');
+CAFE24.AVAILABLE_LANGUAGE = ["ko_KR","zh_CN","en_US","zh_TW","es_ES","pt_PT","vi_VN","ja_JP","en_PH"];
+CAFE24.AVAILABLE_LANGUAGE_CODES = {"ko_KR":"KOR","zh_CN":"CHN","en_US":"ENG","zh_TW":"TWN","es_ES":"ESP","pt_PT":"PRT","vi_VN":"VNM","ja_JP":"JPN","en_PH":"PHL"};
+var EC_AVAILABLE_LANGUAGE = CAFE24.AVAILABLE_LANGUAGE;
+var EC_AVAILABLE_LANGUAGE_CODES = CAFE24.AVAILABLE_LANGUAGE_CODES;
+CAFE24.GLOBAL_PRODUCT_LANGUAGE_CODES = {  
+sClearanceCategoryCode: '',
+sManualLink: '//support.cafe24.com/hc/ko/articles/7739013909529',
+sHsCodePopupLink: 'https://www.wcotradetools.org/en/harmonized-system',
+aCustomRegex: '"PHL" : "^[0-9]{8}[A-Z]?$"',
+sCountryCodeData: 'kor',
+sEnglishExampleURlForGlobal: '',
+aReverseAddressCountryCode: ["VNM","PHL"],
+aSizeGuideCountryAlign: '["US","UK","EU","KR","JP","CN"]',
+aIsSupportTran: ["ja_JP","zh_CN","zh_TW","en_US","vi_VN","en_PH","pt_PT","es_ES"]
+};
+var EC_GLOBAL_PRODUCT_LANGUAGE_CODES = CAFE24.getDeprecatedNamespace('EC_GLOBAL_PRODUCT_LANGUAGE_CODES');
+CAFE24.GLOBAL_ORDER_LANGUAGE_CODES = {
+aModifyOrderLanguage: {"KR":"ko_KR","JP":"ja_JP","CN":"zh_CN","TW":"zh_TW","VN":"vi_VN","PH":"en_PH"},
+aUseIdCardKeyCountry: ["CN","TW"],
+aLanguageWithCountryCode: {"zh_CN":["CN","CHN","HK","HNK"],"ja_JP":["JP","JPN"],"zh_TW":["TW","TWN"],"ko_KR":["KR","KOR"],"vi_VN":["VN","VNM"],"en_PH":["PH","PHL"]},
+aCheckDisplayRequiredIcon: ["ja_JP","zh_CN","zh_TW","en_US","vi_VN","en_PH"],
+aSetReceiverName: {"zh_CN":{"sCountry":"CN","bUseLastName":true},"zh_TW":{"sCountry":"TW","bUseLastName":false},"ja_JP":{"sCountry":"JP","bUseLastName":true}},
+aSetDeferPaymethodLanguage: {"ja_JP":"\uc77c\ubcf8","zh_CN":"\uc911\uad6d"},
+aUseDeferPaymethod: ["ja_JP","zh_CN"],
+aCheckShippingCompanyAndPaymethod: ["ja_JP","zh_CN"],
+aSetDeferPaymethodLanguageForShipping: {"ja_JP":"\u65e5\u672c","zh_CN":"\uc911\uad6d"},
+aCheckStoreByPaymethod: ["ja_JP","zh_CN"],
+aCheckIsEmailRequiredForJs: ["en_US","zh_CN","zh_TW","ja_JP","vi_VN","en_PH"],
+aSetIdCardKeyCountryLanguage: {"CN":"\uc911\uad6d\uc758","TW":"\ub300\ub9cc\uc758"},
+aReverseGlobalAddress: ["en_PH","vi_VN","PHL","VNM","VN","PH"],
+aNoCheckZipCode: ["KOR","JPN"],
+aNotPostCodeAPICountryList: ["en_US","es_ES","pt_PT","en_PH"],
+aEnableSearchExchangeAddr: ["KR","JP","CN","VN","TW","PH"],
+aDuplicatedBaseAddr: ["TW","JP"],
+aReverseAddressCountryCode: ["VN","PH"],
+aCheckZipCode: ["PHL","en_PH","PH"]
+};
+var EC_GLOBAL_ORDER_LANGUAGE_CODES = CAFE24.getDeprecatedNamespace('EC_GLOBAL_ORDER_LANGUAGE_CODES');
+CAFE24.GLOBAL_MEMBER_LANGUAGE_CODES = {  
+sAdminWebEditorLanguageCode: 'ko' ,
+oNotAvailDecimalPointLanguages: ["ko_KR","ja_JP","zh_TW","vi_VN"],
+oAddressCountryCode: {"KOR":"ko_KR","JPN":"ja_JP","CHN":"zh_CN","TWN":"zh_TW","VNM":"vi_VN","PHL":"en_PH"},
+};
+var EC_GLOBAL_MEMBER_LANGUAGE_CODES = CAFE24.getDeprecatedNamespace('EC_GLOBAL_MEMBER_LANGUAGE_CODES');
+CAFE24.GLOBAL_BOARD_LANGUAGE_CODES = {  
+bUseLegacyBoard: true
+};
+var EC_GLOBAL_BOARD_LANGUAGE_CODES = CAFE24.getDeprecatedNamespace('EC_GLOBAL_BOARD_LANGUAGE_CODES');
+CAFE24.GLOBAL_MALL_LANGUAGE_CODES = {
+oDesign: {
+oDesignAddReplaceInfo: {"group_id":"SKIN.ADD.ADMIN.DESIGNDETAIL","replacement":{"KR":"KOREAN","US":"ENGLISH","JP":"JAPANESE","CN":"SIMPLIFIED.CHINESE","TW":"TRADITIONAL.CHINESE","ES":"SPANISH","PT":"PORTUGUESE","PH":"ENGLISH"}},
+oDesignDetailLanguageCountryMap: {"KR":"ko_KR","JP":"ja_JP","CN":"zh_CN","TW":"zh_TW","US":"en_US","ES":"es_ES","PT":"pt_PT","PH":"en_PH"},
+oSmartDesignSwitchTipLink: {"edibot":{"img":"\/\/img.echosting.cafe24.com\/smartAdmin\/img\/design\/img_editor_dnd.png","link":"\/\/ecsupport.cafe24.com\/board\/free\/list.html?board_act=list&board_no=12&category_no=9&cate_no=9"},"smart":{"img":"\/\/img.echosting.cafe24.com\/smartAdmin\/img\/design\/ko_KR\/img_editor_smart.png","link":"\/\/sdsupport.cafe24.com"}},
+oSmartDesignDecoShopList: ["ko_KR","ja_JP","zh_CN","en_US","zh_TW","es_ES","pt_PT"],
+oSmartDesignDecoMultilingual: {"list":{"ko_KR":"KOREAN","en_US":"ENGLISH","ja_JP":"JAPANESE","zh_CN":"SIMPLIFIED.CHINESE","zh_TW":"TRADITIONAL.CHINESE","es_ES":"SPANISH","pt_PT":"PORTUGUESE","vi_VN":"VIETNAMESE"},"group_id":"EDITOR.LAYER.EDITING.DECO"},
+aSmartDesignModuleShopList: ["ko_KR","ja_JP","zh_CN","en_US","zh_TW","es_ES","pt_PT"]
+},
+oStore: {
+oMultiShopCurrencyInfo: {"en_US":{"currency":"USD"},"zh_CN":{"currency":"USD","sub_currency":"CNY"},"ja_JP":{"currency":"JPY"},"zh_TW":{"currency":"TWD"},"es_ES":{"currency":"EUR"},"pt_PT":{"currency":"EUR"},"ko_KR":{"currency":"KRW"},"vi_VN":{"currency":"VND"},"en_PH":{"currency":"PHP"}},
+oBrowserRedirectLanguage: {"ko":{"primary":"ko_KR","secondary":"en_US"},"en":{"detail":{"en-ph":{"primary":"en_PH","secondary":"en_US"},"en-us":{"primary":"en_US","secondary":"es_ES"},"default":{"primary":"en_US","secondary":"es_ES"}}},"ja":{"primary":"ja_JP","secondary":"en_US"},"zh":{"detail":{"zh-cn":{"primary":"zh_CN","secondary":"en_US"},"zh-tw":{"primary":"zh_TW","secondary":"zh_CN"},"default":{"primary":"en_US","secondary":"ko_KR"}}},"es":{"primary":"es_ES","secondary":"en_US"},"pt":{"primary":"pt_PT","secondary":"en_US"},"vi":{"primary":"vi_VN","secondary":"en_US"},"default":{"primary":"en_US","secondary":"ko_KR"}},
+aChangeableLanguages: ["en_US","vi_VN","ja_JP","ko_KR","zh_TW","th_TH"],
+aNoZipCodeLanguage: ["ko_KR","ja_JP"]
+},
+oMobile: {
+sSmartWebAppFaqUrl: "https://support.cafe24.com/hc/ko/articles/8466586607641",
+sAmpFaqUrl: "https://ecsupport.cafe24.com/board/free/read.html?no=1864&board_no=5&category_no=13&cate_no=13&category_no=13&category_no=13",
+},
+oPromotion: {
+bQrCodeAvailable: true,
+bSnsMarketingAvailable: true
+},
+oShippingReverseAddressLanguage: ["vi_VN","en_PH"] ,
+oGlobalStandardSwitchHelpCodeLink: {"SH.DS":{"link":"\/\/serviceguide.cafe24shop.com\/en_PH\/SH.DS.html"},"PR.DS":{"link":"\/\/serviceguide.cafe24shop.com\/en_PH\/PR.DS.html"},"OR.SM.BO":{"link":"\/\/serviceguide.cafe24shop.com\/en_PH\/OR.SM.BO.html"},"DE.DS":{"link":"\/\/serviceguide.cafe24shop.com\/en_PH\/DE.DS.html"},"MB.DS":{"link":"\/\/serviceguide.cafe24shop.com\/en_PH\/MB.DS.html"},"PM.DS":{"link":"\/\/serviceguide.cafe24shop.com\/en_PH\/PM.DS.html"}},
+getAdminMainLocaleLanguage: function(sSkinLocaleCode) {
+var oLocaleData = [];
+var locale = "";
+var shopLangName = ""; 
+if (sSkinLocaleCode == "US") {
+locale = "en_US";
+shopLangName = "ENGLISH";
+} else if (sSkinLocaleCode == "JP") {
+locale = "ja_JP";
+shopLangName = "JAPANESE";
+} else if (sSkinLocaleCode == "CN") {
+locale = "zh_CN";
+shopLangName = "SIMPLIFIED.CHINESE";
+} else if (sSkinLocaleCode == "TW") {
+locale = "zh_TW";
+shopLangName = "TRADITIONAL.CHINESE";
+} else if (sSkinLocaleCode == "ES") {
+locale = "es_ES";
+shopLangName = "SPANISH";
+} else if (sSkinLocaleCode == "PT") {
+locale = "pt_PT";
+shopLangName = "PORTUGUESE";
+} else if (sSkinLocaleCode == "VN") {
+locale = "vi_VN";
+shopLangName = "VIETNAMESE";
+} else if(sSkinLocaleCode == "PH") {
+locale = "en_PH";
+shopLangName = "ENGLISH.PH";
+}
+oLocaleData["locale"] = locale;
+oLocaleData["shopLangName"] = shopLangName;
+return oLocaleData;
+}
+};
+var EC_GLOBAL_MALL_LANGUAGE_CODES = CAFE24.getDeprecatedNamespace('EC_GLOBAL_MALL_LANGUAGE_CODES');
+CAFE24.GLOBAL_DATETIME_INFO = {
+oConstants: {"STANDARD_DATE_REGEX":"\/([12]\\d{3}-(0[1-9]|1[0-2])-(0[1-9]|[12]\\d|3[01]))\/","IN_ZONE":"inZone","OUT_ZONE":"outZone","IN_FORMAT":"inFormat","OUT_FORMAT":"outFormat","IN_DATE_FORMAT":"inDateFormat","IN_TIME_FORMAT":"inTimeFormat","OUT_DATE_FORMAT":"outDateFormat","OUT_TIME_FORMAT":"outTimeFormat","IN_FORMAT_DATE_ONLY":1,"IN_FORMAT_TIME_ONLY":2,"IN_FORMAT_ALL":3,"OUT_FORMAT_DATE_ONLY":1,"OUT_FORMAT_TIME_ONLY":2,"OUT_FORMAT_ALL":3,"DATE_ONLY":"YYYY-MM-DD","TIME_ONLY":"HH:mm:ss","FULL_TIME":"YYYY-MM-DD HH:mm:ss","ISO_8601":"YYYY-MM-DD[T]HH:mm:ssZ","YEAR_ONLY":"YYYY","MONTH_ONLY":"MM","DAY_ONLY":"DD","WEEK_ONLY":"e","TIME_H_I_ONLY":"HH:mm","TIME_HOUR_ONLY":"HH","TIME_MINUTE_ONLY":"mm","POSTGRE_FULL_TIME":"YYYY-MM-DD HH24:MI:SS","POSTGRE_TIME_ONLY":" HH24:MI:SS","MICRO_SECOND_ONLY":"u","SEOUL":"Asia\/Seoul","TOKYO":"Asia\/Tokyo","SHANGHAI":"Asia\/Shanghai","TAIPEI":"Asia\/Taipei","HANOI":"Asia\/Bangkok","LOS_ANGELES":"America\/Los_Angeles","LISBON":"Europe\/Lisbon","MADRID":"Europe\/Madrid","SINGAPORE":"Asia\/Singapore","UTC":"Etc\/UTC","MAX_DATETIME":"9999-12-31 23:59:59"},
+oOptions: {"inZone":"Asia\/Seoul","inFormat":"YYYY-MM-DD HH:mm:ss","inDateFormat":"YYYY-MM-DD","inTimeFormat":"HH:mm:ss","outZone":"Asia\/Seoul","outFormat":"YYYY-MM-DD HH:mm:ss","outDateFormat":"YYYY-MM-DD","outTimeFormat":"HH:mm:ss"},
+oPolicies: {"shop":{"outZone":"Asia\/Seoul","outFormat":"YYYY-MM-DD HH:mm:ss","outDateFormat":"YYYY-MM-DD","outTimeFormat":"HH:mm:ss"}},
+sOverrideTimezone: '',
+sMomentNamespace: 'EC_GLOBAL_MOMENT'
+};
+CAFE24.FRONT_JS_CONFIG_MANAGE = {"sSmartBannerScriptUrl":"https:\/\/app4you.cafe24.com\/SmartBanner\/tunnel\/scriptTags?vs=1563164396689206","sMallId":"hpercent","sDefaultAppDomain":"https:\/\/app4you.cafe24.com","sWebLogOffFlag":"F"};
+var EC_FRONT_JS_CONFIG_MANAGE = CAFE24.getDeprecatedNamespace('EC_FRONT_JS_CONFIG_MANAGE');
+CAFE24.FRONT_JS_CONFIG_MEMBER = {"sAuthUrl":"https:\/\/i-pin.cafe24.com\/certify\/1.0\/?action=auth"};
+var EC_FRONT_JS_CONFIG_MEMBER = CAFE24.getDeprecatedNamespace('EC_FRONT_JS_CONFIG_MEMBER');
+CAFE24.FRONT_JS_CONFIG_SHOP = {"aProductPurchaseInfo_13":{"bIsSuccess":true,"sMessage":"","bReplaceLoginPage":false,"bIsDisplayPurchaseButton":true},"aProductPurchaseInfo_29":{"bIsSuccess":true,"sMessage":"","bReplaceLoginPage":false,"bIsDisplayPurchaseButton":true},"aProductPurchaseInfo_21":{"bIsSuccess":true,"sMessage":"","bReplaceLoginPage":false,"bIsDisplayPurchaseButton":true},"aProductPurchaseInfo_25":{"bIsSuccess":true,"sMessage":"","bReplaceLoginPage":false,"bIsDisplayPurchaseButton":true},"aProductPurchaseInfo_20":{"bIsSuccess":true,"sMessage":"","bReplaceLoginPage":false,"bIsDisplayPurchaseButton":true},"aProductPurchaseInfo_19":{"bIsSuccess":true,"sMessage":"","bReplaceLoginPage":false,"bIsDisplayPurchaseButton":true},"aProductPurchaseInfo_18":{"bIsSuccess":true,"sMessage":"","bReplaceLoginPage":false,"bIsDisplayPurchaseButton":true},"aProductPurchaseInfo_17":{"bIsSuccess":true,"sMessage":"","bReplaceLoginPage":false,"bIsDisplayPurchaseButton":true},"aProductPurchaseInfo_26":{"bIsSuccess":true,"sMessage":"","bReplaceLoginPage":false,"bIsDisplayPurchaseButton":true},"aProductPurchaseInfo_27":{"bIsSuccess":true,"sMessage":"","bReplaceLoginPage":false,"bIsDisplayPurchaseButton":true},"aProductPurchaseInfo_28":{"bIsSuccess":true,"sMessage":"","bReplaceLoginPage":false,"bIsDisplayPurchaseButton":true}};
+var EC_FRONT_JS_CONFIG_SHOP = CAFE24.getDeprecatedNamespace('EC_FRONT_JS_CONFIG_SHOP');
+typeof window.CAFE24 === "undefined" && (window.CAFE24 = {});
+CAFE24.BOARD = {"config_4":{"board_no":4,"use_block":"F","use_report":"F"}};
+CAFE24.FRONTEND = {"FW_MANIFEST_CACHE_REVISION":2211021144,"IS_WEB_VIEW":"F"};
+CAFE24.ROUTE = {"is_mobile":false,"is_need_route":false,"language_code":"ZZ","path":{"origin":"\/","result":"\/","prefix":""},"shop_no":0,"skin_code":"default","support_language_list":{"ar":"ar_EG","ar-EG":"ar_EG","de":"de_DE","de-DE":"de_DE","en":"en_US","en-IN":"en_IN","en-PH":"en_PH","en-US":"en_US","es":"es_ES","es-ES":"es_ES","hi":"hi_IN","hi-IN":"hi_IN","id":"id_ID","id-ID":"id_ID","it":"it_IT","it-IT":"it_IT","ja":"ja_JP","ja-JP":"ja_JP","ko":"ko_KR","ko-KR":"ko_KR","ms":"ms_MY","ms-MY":"ms_MY","pt":"pt_PT","pt-PT":"pt_PT","ru":"ru_RU","ru-RU":"ru_RU","th":"th_TH","th-TH":"th_TH","tr":"tr_TR","tr-TR":"tr_TR","vi":"vi_VN","vi-VN":"vi_VN","zh":"zh_CN","zh-CN":"zh_CN","zh-HK":"zh_HK","zh-MO":"zh_MO","zh-SG":"zh_SG","zh-TW":"zh_TW"}};
+</script>
+<link rel="stylesheet" type="text/css" href="//img.echosting.cafe24.com/editors/froala/css/froala_style_ec.min.css?vs=2211021144" charset="utf-8"/>
+
+<link rel="stylesheet" type="text/css" href="/ind-script/optimizer.php?filename=nZExDgIxDAT7KC3vsOAJPIEfOMFwJxxv5CQS_J6jggYJ0o52doulBUVof3CqjqtzIZeG4Vkot0YXh3XKKAUWN7CjX_KSQ4OOvsJCwn1SHL3Pjio_xOfUzkllUkUNupqExGZf97lWOoL9TKfPug3H9MIxKfLtP_l90BM&type=css&k=a25e2c4fd60527b98405149b31c653daef4af884&t=1658136771"  /><link rel="stylesheet" type="text/css" href="/ind-script/optimizer.php?filename=tdSxbsQgDADQPXTtd3joT3TvF4DxBV8BoxhObb--pKdWt3RJYImIYl4sYwNBEgGhaUqbQii0IeUKpbnIaEJNEdST8aS8ZtB3zi9g_BVQFfx1SZbzU18_w1HoIj1qfxxn_qL2pIJBSUmyKXhcjPZTWgVnlfFHJVz6Cy39A23H3Z1K4luk31-kFitrkPIWuBTO60gcJd_6fpZ8phgPx313h1Bl66niGEsj-7HHomQ3DK9kT7kPKbqahzhJbgPb-j4qE-ak8QS0ivRhKRPkQHEGe7rH_5ftytlWmlFl6yaortU6pdOcfMwpQpxR3B415ia-iNRBV1OyX7vzDQ&type=css&k=09ef0ff891e132dafb115a1d4d19d80e8476bf66&t=1637656950&user=T"  />
+<style type="text/css">
+
+</style>
+<title>헬시퍼센트 - 균형있는 라이프를 위한 새로운 여정</title>
+<meta name="path_role" content="MAIN" />
+<meta name="description" content="라이프 크리에이터 헬시퍼센트의 첫 제품! 고함량 아르기닌과 특허 오르니틴의 혁신적인 원료 배합으로 만든 베네핏아르기닌시너지를 지금 만나보세요." />
+<meta name="keywords" content="헬시퍼센트헬시퍼센트,베네핏아르기닌시너지,HealthyPercent,Benefit,아르기닌,오르니틴,베네핏 아르기닌 시너지, 헬시 페센트" /></head><body>
+<!-- 전체 페이지 공통 -->
+
+<div id="header-h">
+    <div id="header">   
+        
+<!------------------------------------------------------------------------------------------------------------------     
+
+    ※ 로고 
+ 
+------------------------------------------------------------------------------------------------------------------->
+
+<div class="logo">
+    <ul><li><a href="/index.html"><img src="/web/hpercent/logo/logo.png" alt="로고"/></a></li>
+    </ul></div>
+    <div class="inner first_in"> 
+        
+<!------------------------------------------------------------------------------------------------------------------     
+
+    ※ 로고 
+ 
+------------------------------------------------------------------------------------------------------------------->
+
+<div class="logo">
+    <ul><li><a href="/index.html"><img src="/web/hpercent/logo/logo.png" alt="로고"/></a></li>
+    </ul></div>
+        
+<!------------------------------------------------------------------------------------------------------------------     
+
+    ※ 로고 좌측 로그인, 로그아웃 등 메뉴
+ 
+------------------------------------------------------------------------------------------------------------------->
+
+<div class="top_menu">
+    
+
+<div class="xans-layout-category right_cate">
+        <div class="position">        
+            <ul><!------------------------------------------------------------------------------------------------------------------     
+
+                ※ 커뮤니티
+ 
+                -------------------------------------------------------------------------------------------------------------------><li class="tel nor">CS CENTER <span>1577-4718</span></li>
+  
+                <li class="community_btn nor">    
+                    <a href="#none" class="click"><img src="/_dj/img/top_r_menu_icon_01_b.png" alt="커뮤니티아이콘"/> COMMUNITY</a>
+                    <div class="community_all">
+                        <div class="community">
+                            <ul><li><a href="/board/free/list.html?board_no=1">공지</a></li>
+                               <li><a href="/board/product/list.html?board_no=6">Q&amp;A</a></li>
+                               <li><a href="/board/p_review/list.html?board_no=4">상품후기</a></li>
+                            </ul></div>
+                    </div>
+                </li>   
+
+            </ul></div> 
+     </div>
+
+
+ 
+    <ul><li class="xans-element- xans-layout xans-layout-statelogoff "><a href="/member/login.html">LOGIN</a>
+</li>
+        <li class="xans-element- xans-layout xans-layout-statelogoff "><a href="/member/join.html">JOIN</a>
+</li>
+                        <li><a href="/myshop/order/list.html">ORDER</a></li>
+        <li><a href="/myshop/index.html">MY PAGE</a></li>
+    </ul></div>
+    </div>  
+        
+    <div class="header_inner">     
+        <!--//@import(/_dj/page/layout/multishopList.html)-->
+        <!------------------------------------------------------------------------------------------------------------------     
+
+    ※ 상단 카테고리 & 우측 아이콘 영역 / 카테고리별 이미지 설정 아래 참조
+ 
+------------------------------------------------------------------------------------------------------------------->
+
+<div id="top_category">
+    <div class="inner">
+    <div class="xans-element- xans-layout xans-layout-category left_cate c_position xans-record-"><ul class="category_img">
+<div class="position">
+             <ul>
+<li class="list"><a href="/shopinfo/company.html">브랜드</a></li>
+                <li class="list"><a href="/product/detail.html?product_no=13">시너지 아르기닌</a></li>
+                 <li class="list"><a href="/product/detail.html?product_no=17">트리플 발효효소</a></li>
+                 <li class="list"><a href="/product/detail.html?product_no=25">슬림 시너지</a></li>
+                 
+                <!--------------------------------------------------------------------- 
+
+                ※ 상품관리 > 분류관리에서 설정한 카테고리 시작 (소스 수정 X)
+                ※ 관련 매뉴얼 http://d-j.co.kr/_dj/sub/manual/manual_view.html?no=22347&board_no=3
+
+                ---------------------------------------------------------------------->
+                 <!--------------------------------------------------------------------- 
+                <li class="list"><a href="/product/list.html?cate_no=23">프로덕트</a></li>
+                <li class="list"><a href="/product/list.html?cate_no=23">프로덕트</a></li>   
+                <li class="list"><a href="/product/list.html?cate_no=23">프로덕트</a></li>   
+                <li class="list"><a href="/product/list.html?cate_no=23">프로덕트</a></li>   
+                 
+                <!--------------------------------------------------------------------- 
+
+                ※ 일반 카테고리 리스트 
+
+                ---------------------------------------------------------------------->
+                <li class="list"><a href="/board/p_review/list.html?board_no=4">상품후기</a></li>
+                <li class="list"><a href="/board/p_review/list.html?board_no=8">이벤트</a></li>  
+                
+ 
+              </ul>
+</div>   
+        </ul>
+<!-----★ 카테고리 마우스 오버 시 이미지 출력 영역 ★-------------------------------------------------------------------------- 
+
+        ※ <div id="sub_img" class="sub_카테고리번호"><a href="링크원하는주소"><img src="/이미지경로/이미지파일명"/></a></div>
+        ※ 카테고리 번호 확인 : 상품관리 > 분류관리 > 카테고리 선택 후 우측 분류 URL 제일 끝 숫자를 적으시면 됩니다.
+        ※ 관련 매뉴얼 http://d-j.co.kr/_dj/sub/manual/manual_view.html?no=30766&board_no=3
+
+        ------------------------------------------------------------------------------------------------------------------------------><div id="sub_img" class="sub_23"><a href="/product/list.html?cate_no=23"><img src="/_dj/img/category_item_img_1.jpg"/></a></div>
+<div id="sub_img" class="sub_25"><a href="/product/list.html?cate_no=25"><img src="/_dj/img/category_item_img_2.jpg"/></a></div>
+</div>
+        
+        
+    </div>
+</div>
+                
+
+<!------------------------------------------------------------------------------------------------------------------     
+
+    ※ 검색창 
+ 
+------------------------------------------------------------------------------------------------------------------->
+<div class="right_area">
+    <div class="right_icon">       
+        <li class="search all_list">   
+             <div id="cart_icon">
+                <a href="/order/basket.html"><i class="xi-cart-o xi-2x"><span class="xans-element- xans-layout xans-layout-orderbasketcount cart_no ">0</span>
+</i></a>
+            </div>
+            
+            <div id="find_btn" class="find_btn">
+                <a href="#none"><i class="xi-magnifier xi-2x"></i></a>
+            </div>
+            
+            <div id="find_view">
+                <form id="searchBarForm" name="" action="/product/search.html" method="get" target="_self" enctype="multipart/form-data" >
+<input id="banner_action" name="banner_action" value="" type="hidden"  /><div class="xans-element- xans-layout xans-layout-searchheader "><!--
+                    $product_page=/product/detail.html
+                    $category_page=/product/list.html
+                    -->
+<fieldset>
+<span>검색</span> <input id="keyword" name="keyword" fw-filter="" fw-label="검색어" fw-msg="" class="inputTypeText" placeholder="" onmousedown="SEARCH_BANNER.clickSearchForm(this)" value="" type="text"  /><input type="image" src="/_dj/img/search_btn_img.png" alt="검색" onclick="SEARCH_BANNER.submitSearchBanner(this); return false;"/>  <div id="find_btn2" class="find_btn"><a href="#none">X</a></div>
+</fieldset>
+</div>
+</form>                <div class="xans-element- xans-search xans-search-hotkeyword bestKeyword"><span>추천 검색어</span>
+<span>
+                        <a href="/product/search.html?keyword=아르지닌" class="xans-record-">아르지닌</a>
+                        <a href="/product/search.html?keyword=아르기닌" class="xans-record-">아르기닌</a><a href="/product/search.html?keyword=베네핏" class="xans-record-">베네핏</a><a href="/product/search.html?keyword=시너지" class="xans-record-">시너지</a>                    </span>
+</div>
+ 
+            </div>
+        </li>
+    </div>
+</div>
+    </div>
+    </div>
+</div>
+
+<hr class="layout"/><div id="wrap">
+    <div id="container">     
+    
+
+
+<!-------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+   ◀◀◀◀◀ 좌측 자주쓰는화면의 "dj_map.html" 를 클릭하시면 수정위치를 보다 쉽게 찾으실 수 있습니다. ◀◀◀◀◀
+
+   ※ 각 섹션 별로 사용 원하지 않으실 경우 class="on"을 class="off"로 변경하시면 숨김 처리가 됩니다.
+      다시 class="on"으로 설정시 보여지게 됩니다. 
+
+   ※ 직접 수정 시 오류가 발생할 수 있으므로, 꼭 수정전 파일을 백업하시길 권합니다. (오류 발생 후 복구 요청시 비용 발생)
+
+   ※ 모든 이미지는 편집창이나 사이트상이 아닌 FTP를 이용해 수정하셔야 합니다. 
+      관련 매뉴얼은 http://d-j.co.kr/_dj/sub/manual/list.html?board_no=3 (FTP 사용법 이미지 변경)을 참고 바랍니다.
+
+
+
+--------------------------------------------------------------------------------------------------------------------------------------->
+
+
+<style> 
+    .dj_slider .slider_1 { min-height:850px; }
+   /* .dj_slider .slider_1.slick-initialized { height:850px; }  */
+</style>
+
+<div class="on" id="section_on_off">  
+    <!--★ 메인 롤링이미지 ★-->
+    <div id="main_section_1">    
+<div class="section left"> 
+<div class="dj_slider slider_1_top action_block">  
+    <div class="foot_btn">              
+        <ul class="inner"><li class="btn_prev"><i class="xi-angle-left xi-4x"></i></li>
+            <li class="btn_next"><i class="xi-angle-right xi-4x"></i></li>
+        </ul></div>
+    <!------------------------------------------------
+
+※ 숫자 3를 이미지 개수만큼 변경하시면 됩니다.
+
+------------------------------------------------->
+    <div class="slider_tag"><span> 1 / 3 </span></div>
+    <div class="slider_1" df-banner-code="main-banner01" hidden>  
+
+        <!------------------------------------------------------------------------
+        .
+        ※ onclick="window.location.href='링크주소';"
+        ※ <div> ~ </div> 까지 복사해 원하시는 개수로 사용 가능합니다.
+
+        ------------------------------------------------------------------------>     
+		<div id="slider_1_img" onclick="window.location.href='{#href}';" df-banner-clone>{#item}</div> 
+
+        <!--★ 1번 이미지 / 이후 아래 모든 id="slider_1_img" 아이디 값 수정/삭제하시면 안됩니다!!! ★-->
+        <!--
+        <div onclick="window.location.href='{#href}';" df-banner-clone>
+            <img src="/_dj/img/main_section_1_img1.jpg" id="slider_1_img" alt="첫번째이미지" />
+        &nbsp;</div>  
+		-->
+        <!--★ 2번 이미지 ★-->
+        <!--
+        <div onclick="window.location.href='/product/list.html?cate_no=23';">
+            <img src="/_dj/img/main_section_1_img2.jpg" id="slider_1_img"  alt="두번째이미지" />                     
+        &nbsp;</div>
+        -->
+
+        <!--★ 3번 이미지 ★-->
+        <!--
+        <div onclick="window.location.href='/product/list.html?cate_no=23';">
+            <img src="/_dj/img/main_section_1_img3.jpg" id="slider_1_img"  alt="세번째이미지" />                     
+        &nbsp;</div>
+        -->
+
+
+
+        <!-- 아래 닫음 div 삭제 금지 -->
+    </div>   
+
+    <script type="text/javascript" src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+<script type="text/javascript" src="/_dj/js/slick/slick.min.js"></script>
+
+    <!------------------------------------------------------------------------ 
+
+    ※ autoplaySpeed: 7000 에서 속도를 조절하시면 됩니다. 1000 = 1초
+
+    --------------------------------------------------------=---------------->
+</div>  
+</div>  
+</div>
+</div>
+
+
+<div class="on" id="section_on_off">
+    <!--★ 시그니처 텍스트 ★-->
+    <div id="main_section_ment">
+    <ul><li>
+            <p class="eng scroll-fade dj-viewport motion2">Hpercent</p>
+            
+            <h2 class="scroll-fade  dj-viewport motion1 dj-noto-serif-kr-font">      
+                헬시퍼센트는<br/>
+				함량보다 밸런스를 지향합니다
+            </h2>
+           
+            <p class="scroll-fade dj-viewport motion5">
+                좋은 식품의 본질은 좋은 원료와 최적의 배합이라는<br/>
+                생각으로 우리 몸에 진짜 필요한 것과 그것들의 균형을 위해 고민합니다.<br/></p>
+        </li>
+    </ul></div>
+</div>
+
+<div class="on" id="section_on_off">
+    <!--★ B E S T  ★-->
+    <script src="/_dj/js/jquery.countdown.min.js"></script>
+<div class="xans-element- xans-product xans-product-listmain-1 xans-product-listmain xans-product-1 main_section"><div class="title scroll-fade dj-viewport motion1">
+        <!--------------------------------------------------------------------------------------------------
+            ※ 타이틀 수정 - 텍스트만 변경바랍니다.
+        --------------------------------------------------------------------------------------------------->
+        <h2>BEST ITEMS </h2>
+<p class="bar"></p>
+        <p class="ment">베네핏 &amp; 시너지</p>
+    </div>
+<div class="dj-product dj-main-product">
+    <!--
+
+        $count = 3
+
+        -------------------------------------------------------------------------------------------------------------------
+            ※ 상품진열개수를 설정하는 변수입니다. 설정하지 않을 경우, 최대 200개의 상품이 진열 됩니다.
+            ※ 진열된 상품이 많으면, 쇼핑몰에 부하가 발생할 수 있습니다.
+        -------------------------------------------------------------------------------------------------------------------
+
+        $basket_result = /product/add_basket.html
+        $basket_option = /product/basket_option.html
+    -->   
+    <!----------------------------------------------------------------------------------
+
+            ※ grid3 의 숫자를 원하는 가로 상품갯수로 변경하시면 자동적용됩니다.
+            ※ grid5 = 한줄에 5개 / grid4 = 한줄에 4개 
+            ※ 설정후 @import(/_dj/page/item_list.html) 갯수를 맞춰 주시면 됩니다.
+
+    ----------------------------------------------------------------------------------->
+    
+    <ul class="prdList grid3">
+<li id="anchorBoxId_13" class="item_list xans-record-">
+    <div class="item_list_box">
+            <div class="time_sale">  
+               <div class="dj-count product_promotion_date displaynone" data-dj-count=""></div>
+               <script type="text/javascript">$('[data-dj-count]').each(function(){var $this=$(this),finalDate=$(this).data('dj-count');$this.countdown(finalDate,function(event){$this.html(event.strftime('<span class="t">남은시간</span> <span class="d">%D</span>일 <span class="h">%H</span> : <span class="m">%M</span> : <span class="s">%S</span>'));});});</script>          
+            </div>
+            <div class="thumbnail">
+                <div class="custom_pro " d-price="45000" d-custom="40500"></div>
+                <div class="button">
+                      <ul>
+<li class="likeButton likePrd likePrd_13"><button type="button"><img src="//img.echosting.cafe24.com/skin/admin_ko_KR/product/ico_likeit.png"  class="likePrdIcon" product_no="13" category_no="1" icon_status="off" alt="좋아요 등록 전" />LIKE<strong><span class="likePrdCount likePrdCount_13">9</span></strong></button></li>
+                      </ul>
+<ul class="other">
+<li class="option"><a onclick="optionPreview(this,'listmain-1',13,'T')"" ><img src="//img.echosting.cafe24.com/design/skin/default/product/btn_option_view.gif"  id="btn_preview_listmain-113" class="option_preview" alt="" /></a><span>옵션보기</span>
+</li>
+                        <li class="cart">
+<a href="#none"><img src="//img.echosting.cafe24.com/design/skin/admin/ko_KR/btn_list_cart.gif"  onClick="CAPP_SHOP_NEW_PRODUCT_OPTIONSELECT.selectOptionCommon(13,  1, 'basket', '')" alt="장바구니 담기" class="ec-admin-icon cart" /></a><span>장바구니</span>
+</li>
+                        <li class="zoom">
+<a href="#none"><img src="//img.echosting.cafe24.com/design/skin/admin/ko_KR/btn_prd_zoom.gif"  onClick="zoom('13', '1', '2','', '');" style="cursor:pointer" alt="상품 큰 이미지 보기" /></a><span>확대보기</span>
+</li>
+                        <li class="pop">
+<a href="/product/헬시퍼센트-베네핏-아르기닌-시너지/13/category/1/display/2/" target="blank"><img src="/_dj/img/button_other_04.png"/></a><span>새창보기</span>
+</li>
+                      </ul>
+</div>
+                  <div class="prdImg  scroll-fade dj-viewport">
+                    <a href="/product/헬시퍼센트-베네핏-아르기닌-시너지/13/category/1/display/2/" name="anchorBoxName_13">
+                        <img src="//hpercent.co.kr/web/product/medium/202207/9c30461efa3f4385fe98208f323b40d6.jpg" id="eListPrdImage13_2" class="thumb_Img" alt="헬시퍼센트 베네핏 아르기닌 시너지"/>                    </a>              
+                </div>
+            </div>
+            <div class="description" onclick="window.location.href='/product/헬시퍼센트-베네핏-아르기닌-시너지/13/category/1/display/2/';">
+                <div class="inner">
+                     <div class="displaynone">
+                                           </div>
+                   <div class="brand displaynone"></div>
+                   <strong class="name"><a href="/product/헬시퍼센트-베네핏-아르기닌-시너지/13/category/1/display/2/" class=""><span style="font-size:12px;color:#555555;">헬시퍼센트 베네핏 아르기닌 시너지</span></a></strong>
+                   <ul class="spec">
+<li class="summary_line displaynone">         
+                       </li>
+<li class="summary displaynone"></li>
+                       <li class="price_all">
+                           <span class="custom ">45,000원</span>
+                           <span class="price  displaynone"><span class="strike">40,500원</span><span class="pri">40,500원</span></span>
+                           <span class="sale displaynone"></span> 
+                       </li>
+                   </ul>
+<div class="icon">
+                       <div class="promotion">      </div>
+                   </div>
+                   </div>
+             </div>
+         </div>
+</li>
+
+            
+<li id="anchorBoxId_29" class="item_list xans-record-">
+    <div class="item_list_box">
+            <div class="time_sale">  
+               <div class="dj-count product_promotion_date displaynone" data-dj-count=""></div>
+               <script type="text/javascript">$('[data-dj-count]').each(function(){var $this=$(this),finalDate=$(this).data('dj-count');$this.countdown(finalDate,function(event){$this.html(event.strftime('<span class="t">남은시간</span> <span class="d">%D</span>일 <span class="h">%H</span> : <span class="m">%M</span> : <span class="s">%S</span>'));});});</script>          
+            </div>
+            <div class="thumbnail">
+                <div class="custom_pro " d-price="300000" d-custom="218000"></div>
+                <div class="button">
+                      <ul>
+<li class="likeButton likePrd likePrd_29"><button type="button"><img src="//img.echosting.cafe24.com/skin/admin_ko_KR/product/ico_likeit.png"  class="likePrdIcon" product_no="29" category_no="1" icon_status="off" alt="좋아요 등록 전" />LIKE<strong><span class="likePrdCount likePrdCount_29">1</span></strong></button></li>
+                      </ul>
+<ul class="other">
+<li class="option"><span>옵션보기</span>
+</li>
+                        <li class="cart">
+<a href="#none"><img src="//img.echosting.cafe24.com/design/skin/admin/ko_KR/btn_list_cart.gif"  onClick="category_add_basket('29','1', '2', 'A0000', false, '1', 'P00000BD', 'A', 'F', '0');" alt="장바구니 담기" class="ec-admin-icon cart" /></a><span>장바구니</span>
+</li>
+                        <li class="zoom">
+<a href="#none"><img src="//img.echosting.cafe24.com/design/skin/admin/ko_KR/btn_prd_zoom.gif"  onClick="zoom('29', '1', '2','', '');" style="cursor:pointer" alt="상품 큰 이미지 보기" /></a><span>확대보기</span>
+</li>
+                        <li class="pop">
+<a href="/product/베네핏슬림시너지-5박스70포/29/category/1/display/2/" target="blank"><img src="/_dj/img/button_other_04.png"/></a><span>새창보기</span>
+</li>
+                      </ul>
+</div>
+                  <div class="prdImg  scroll-fade dj-viewport">
+                    <a href="/product/베네핏슬림시너지-5박스70포/29/category/1/display/2/" name="anchorBoxName_29">
+                        <img src="//hpercent.co.kr/web/product/medium/202206/8c53f3d2bf0fcb48d13ff5115f21ea87.jpg" id="eListPrdImage29_2" class="thumb_Img" alt="베네핏슬림시너지 5박스(70포)"/>                    </a>              
+                </div>
+            </div>
+            <div class="description" onclick="window.location.href='/product/베네핏슬림시너지-5박스70포/29/category/1/display/2/';">
+                <div class="inner">
+                     <div class="displaynone">
+                                           </div>
+                   <div class="brand displaynone"></div>
+                   <strong class="name"><a href="/product/베네핏슬림시너지-5박스70포/29/category/1/display/2/" class=""><span style="font-size:12px;color:#555555;">베네핏슬림시너지 5박스(70포)</span></a></strong>
+                   <ul class="spec">
+<li class="summary_line displaynone">         
+                       </li>
+<li class="summary displaynone"></li>
+                       <li class="price_all">
+                           <span class="custom ">300,000원</span>
+                           <span class="price  displaynone"><span class="strike">218,000원</span><span class="pri">218,000원</span></span>
+                           <span class="sale displaynone"></span> 
+                       </li>
+                   </ul>
+<div class="icon">
+                       <div class="promotion">      </div>
+                   </div>
+                   </div>
+             </div>
+         </div>
+</li>
+
+            
+<li id="anchorBoxId_21" class="item_list xans-record-">
+    <div class="item_list_box">
+            <div class="time_sale">  
+               <div class="dj-count product_promotion_date displaynone" data-dj-count=""></div>
+               <script type="text/javascript">$('[data-dj-count]').each(function(){var $this=$(this),finalDate=$(this).data('dj-count');$this.countdown(finalDate,function(event){$this.html(event.strftime('<span class="t">남은시간</span> <span class="d">%D</span>일 <span class="h">%H</span> : <span class="m">%M</span> : <span class="s">%S</span>'));});});</script>          
+            </div>
+            <div class="thumbnail">
+                <div class="custom_pro " d-price="220000" d-custom="179000"></div>
+                <div class="button">
+                      <ul>
+<li class="likeButton likePrd likePrd_21"><button type="button"><img src="//img.echosting.cafe24.com/skin/admin_ko_KR/product/ico_likeit.png"  class="likePrdIcon" product_no="21" category_no="1" icon_status="off" alt="좋아요 등록 전" />LIKE<strong><span class="likePrdCount likePrdCount_21">1</span></strong></button></li>
+                      </ul>
+<ul class="other">
+<li class="option"><span>옵션보기</span>
+</li>
+                        <li class="cart">
+<a href="#none"><img src="//img.echosting.cafe24.com/design/skin/admin/ko_KR/btn_list_cart.gif"  onClick="category_add_basket('21','1', '2', 'A0000', false, '1', 'P000000V', 'A', 'F', '0');" alt="장바구니 담기" class="ec-admin-icon cart" /></a><span>장바구니</span>
+</li>
+                        <li class="zoom">
+<a href="#none"><img src="//img.echosting.cafe24.com/design/skin/admin/ko_KR/btn_prd_zoom.gif"  onClick="zoom('21', '1', '2','', '');" style="cursor:pointer" alt="상품 큰 이미지 보기" /></a><span>확대보기</span>
+</li>
+                        <li class="pop">
+<a href="/product/베네핏-트리플-효소-4박스120포/21/category/1/display/2/" target="blank"><img src="/_dj/img/button_other_04.png"/></a><span>새창보기</span>
+</li>
+                      </ul>
+</div>
+                  <div class="prdImg  scroll-fade dj-viewport">
+                    <a href="/product/베네핏-트리플-효소-4박스120포/21/category/1/display/2/" name="anchorBoxName_21">
+                        <img src="//hpercent.co.kr/web/product/medium/202204/e3e0a24d4a1bfec746c5138db01fadef.jpg" id="eListPrdImage21_2" class="thumb_Img" alt="베네핏 트리플 효소 4박스(120포)"/>                    </a>              
+                </div>
+            </div>
+            <div class="description" onclick="window.location.href='/product/베네핏-트리플-효소-4박스120포/21/category/1/display/2/';">
+                <div class="inner">
+                     <div class="displaynone">
+                                           </div>
+                   <div class="brand displaynone"></div>
+                   <strong class="name"><a href="/product/베네핏-트리플-효소-4박스120포/21/category/1/display/2/" class=""><span style="font-size:12px;color:#555555;">베네핏 트리플 효소 4박스(120포)</span></a></strong>
+                   <ul class="spec">
+<li class="summary_line displaynone">         
+                       </li>
+<li class="summary displaynone"></li>
+                       <li class="price_all">
+                           <span class="custom ">220,000원</span>
+                           <span class="price  displaynone"><span class="strike">179,000원</span><span class="pri">179,000원</span></span>
+                           <span class="sale displaynone"></span> 
+                       </li>
+                   </ul>
+<div class="icon">
+                       <div class="promotion">      </div>
+                   </div>
+                   </div>
+             </div>
+         </div>
+</li>
+
+     </ul>
+</div>
+</div>
+</div>
+
+<div class="on" id="section_on_off">
+    <!--★ 배너 3개 ★-->
+    <div id="main_section_banner">
+    <ul df-banner-code="main-middle" hidden><li class="scroll-fade dj-viewport motion4" df-banner-clone>
+            <a href="%7B#href%7D">
+                {#item}
+                <span class="title dj-noto-serif-kr-font"></span>
+                <span class="ment"></span>
+            </a>
+        </li>
+        <!--
+        <li class="scroll-fade dj-viewport motion3">
+            <a href="/member/join.html">
+                <img src="/_dj/img/main_section_banner_2.jpg" alt="배너이미지2" />
+                &nbsp;<span class="title dj-noto-serif-kr-font">회원가입하고 5% 쿠폰받기</span>
+                <span class="ment">가입만 해도 할인 쿠폰 지급!</span>
+            </a>
+        </li>
+        <li class="scroll-fade dj-viewport motion4">
+            <a href="/_dj/page/list/store.html">
+                <img src="/_dj/img/main_section_banner_3.jpg" alt="배너이미지3" />
+                &nbsp;<span class="title dj-noto-serif-kr-font">원칙없이 즐거운 디자인</span>
+                <span class="ment">모두에게 행복을 줍니다</span>
+            </a>
+        </li>
+		-->
+    </ul></div>
+</div>
+
+
+<div class="off" id="section_on_off">
+    <!--★ N E W ★-->
+    <div id="main_section_2-1" class="xans-element- xans-product xans-product-listmain-2 xans-product-listmain xans-product-2 main_section"><div class="title scroll-fade dj-viewport motion1">
+        <!--------------------------------------------------------------------------------------------------
+            ※ 타이틀 수정 - 텍스트만 변경바랍니다.
+        --------------------------------------------------------------------------------------------------->
+        <h2>NEW ITEMS</h2>
+<p class="bar"></p>
+        <p class="ment">더욱 효과적인 흡수를 가능하게 하는 알파 알부틴 함유</p>
+    </div>
+<div class="dj-product dj-main-product">
+    <!--
+
+        $count = 10
+
+        -------------------------------------------------------------------------------------------------------------------
+            ※ 상품진열개수를 설정하는 변수입니다. 설정하지 않을 경우, 최대 200개의 상품이 진열 됩니다.
+            ※ 진열된 상품이 많으면, 쇼핑몰에 부하가 발생할 수 있습니다.
+        -------------------------------------------------------------------------------------------------------------------
+
+        $basket_result = /product/add_basket.html
+        $basket_option = /product/basket_option.html
+    -->   
+    <!----------------------------------------------------------------------------------
+
+            ※ grid3 의 숫자를 원하는 가로 상품갯수로 변경하시면 자동적용됩니다.
+            ※ grid5 = 한줄에 5개 / grid4 = 한줄에 4개 
+            ※ 설정후 @import(/_dj/page/item_list.html) 갯수를 맞춰 주시면 됩니다.
+
+    ----------------------------------------------------------------------------------->
+    
+    <ul class="prdList grid5">
+<li id="anchorBoxId_25" class="item_list xans-record-">
+    <div class="item_list_box">
+            <div class="thumbnail">
+                <div class="custom_pro " d-price="60000" d-custom="54000"></div>
+                <div class="button">
+                      <ul>
+<li class="likeButton likePrd likePrd_25"><button type="button"><img src="//img.echosting.cafe24.com/skin/admin_ko_KR/product/ico_likeit.png"  class="likePrdIcon" product_no="25" category_no="1" icon_status="off" alt="좋아요 등록 전" />LIKE<strong><span class="likePrdCount likePrdCount_25">0</span></strong></button></li>
+                      </ul>
+<ul class="other">
+<li class="option"><a onclick="optionPreview(this,'listmain-2',25,'T')"" ><img src="//img.echosting.cafe24.com/design/skin/default/product/btn_option_view.gif"  id="btn_preview_listmain-225" class="option_preview" alt="" /></a><span>옵션보기</span>
+</li>
+                        <li class="cart">
+<a href="#none"><img src="//img.echosting.cafe24.com/design/skin/admin/ko_KR/btn_list_cart.gif"  onClick="CAPP_SHOP_NEW_PRODUCT_OPTIONSELECT.selectOptionCommon(25,  1, 'basket', '')" alt="장바구니 담기" class="ec-admin-icon cart" /></a><span>장바구니</span>
+</li>
+                        <li class="zoom">
+<a href="#none"><img src="//img.echosting.cafe24.com/design/skin/admin/ko_KR/btn_prd_zoom.gif"  onClick="zoom('25', '1', '3','', '');" style="cursor:pointer" alt="상품 큰 이미지 보기" /></a><span>확대보기</span>
+</li>
+                        <li class="pop">
+<a href="/product/베네핏슬림시너지/25/category/1/display/3/" target="blank"><img src="/_dj/img/button_other_04.png"/></a><span>새창보기</span>
+</li>
+                      </ul>
+</div>
+                  <div class="prdImg  scroll-fade dj-viewport">
+                    <a href="/product/베네핏슬림시너지/25/category/1/display/3/" name="anchorBoxName_25">
+                        <img src="//hpercent.co.kr/web/product/medium/202206/f8557e51d723262a3e0f913264544ab4.jpg" id="eListPrdImage25_3" class="thumb_Img" alt="베네핏슬림시너지"/>                    </a>              
+                </div>
+            </div>
+            <div class="description" onclick="window.location.href='/product/베네핏슬림시너지/25/category/1/display/3/';">
+                <div class="inner">
+                     <div class="displaynone">
+                                           </div>
+                   <div class="brand displaynone"></div>
+                   <strong class="name"><a href="/product/베네핏슬림시너지/25/category/1/display/3/" class=""><span style="font-size:12px;color:#555555;">베네핏슬림시너지</span></a></strong>
+                   <ul class="spec">
+<li class="summary_line displaynone">         
+                       </li>
+<li class="summary displaynone"></li>
+                       <li class="price_all">
+                           <span class="custom ">60,000원</span>
+                           <span class="price  displaynone"><span class="strike">54,000원</span><span class="pri">54,000원</span></span>
+                           <span class="sale displaynone"></span> 
+                       </li>
+                       <li class="review_c displaynone">리뷰 : </li>
+                   </ul>
+<div class="icon">
+                       <div class="promotion">      </div>
+                   </div>
+                   </div>
+             </div>
+         </div>
+</li>
+
+            
+<li id="anchorBoxId_21" class="item_list xans-record-">
+    <div class="item_list_box">
+            <div class="thumbnail">
+                <div class="custom_pro " d-price="220000" d-custom="179000"></div>
+                <div class="button">
+                      <ul>
+<li class="likeButton likePrd likePrd_21"><button type="button"><img src="//img.echosting.cafe24.com/skin/admin_ko_KR/product/ico_likeit.png"  class="likePrdIcon" product_no="21" category_no="1" icon_status="off" alt="좋아요 등록 전" />LIKE<strong><span class="likePrdCount likePrdCount_21">1</span></strong></button></li>
+                      </ul>
+<ul class="other">
+<li class="option"><span>옵션보기</span>
+</li>
+                        <li class="cart">
+<a href="#none"><img src="//img.echosting.cafe24.com/design/skin/admin/ko_KR/btn_list_cart.gif"  onClick="category_add_basket('21','1', '3', 'A0000', false, '1', 'P000000V', 'A', 'F', '0');" alt="장바구니 담기" class="ec-admin-icon cart" /></a><span>장바구니</span>
+</li>
+                        <li class="zoom">
+<a href="#none"><img src="//img.echosting.cafe24.com/design/skin/admin/ko_KR/btn_prd_zoom.gif"  onClick="zoom('21', '1', '3','', '');" style="cursor:pointer" alt="상품 큰 이미지 보기" /></a><span>확대보기</span>
+</li>
+                        <li class="pop">
+<a href="/product/베네핏-트리플-효소-4박스120포/21/category/1/display/3/" target="blank"><img src="/_dj/img/button_other_04.png"/></a><span>새창보기</span>
+</li>
+                      </ul>
+</div>
+                  <div class="prdImg  scroll-fade dj-viewport">
+                    <a href="/product/베네핏-트리플-효소-4박스120포/21/category/1/display/3/" name="anchorBoxName_21">
+                        <img src="//hpercent.co.kr/web/product/medium/202204/e3e0a24d4a1bfec746c5138db01fadef.jpg" id="eListPrdImage21_3" class="thumb_Img" alt="베네핏 트리플 효소 4박스(120포)"/>                    </a>              
+                </div>
+            </div>
+            <div class="description" onclick="window.location.href='/product/베네핏-트리플-효소-4박스120포/21/category/1/display/3/';">
+                <div class="inner">
+                     <div class="displaynone">
+                                           </div>
+                   <div class="brand displaynone"></div>
+                   <strong class="name"><a href="/product/베네핏-트리플-효소-4박스120포/21/category/1/display/3/" class=""><span style="font-size:12px;color:#555555;">베네핏 트리플 효소 4박스(120포)</span></a></strong>
+                   <ul class="spec">
+<li class="summary_line displaynone">         
+                       </li>
+<li class="summary displaynone"></li>
+                       <li class="price_all">
+                           <span class="custom ">220,000원</span>
+                           <span class="price  displaynone"><span class="strike">179,000원</span><span class="pri">179,000원</span></span>
+                           <span class="sale displaynone"></span> 
+                       </li>
+                       <li class="review_c displaynone">리뷰 : </li>
+                   </ul>
+<div class="icon">
+                       <div class="promotion">      </div>
+                   </div>
+                   </div>
+             </div>
+         </div>
+</li>
+
+            
+<li id="anchorBoxId_20" class="item_list xans-record-">
+    <div class="item_list_box">
+            <div class="thumbnail">
+                <div class="custom_pro " d-price="275000" d-custom="218000"></div>
+                <div class="button">
+                      <ul>
+<li class="likeButton likePrd likePrd_20"><button type="button"><img src="//img.echosting.cafe24.com/skin/admin_ko_KR/product/ico_likeit.png"  class="likePrdIcon" product_no="20" category_no="1" icon_status="off" alt="좋아요 등록 전" />LIKE<strong><span class="likePrdCount likePrdCount_20">0</span></strong></button></li>
+                      </ul>
+<ul class="other">
+<li class="option"><span>옵션보기</span>
+</li>
+                        <li class="cart">
+<a href="#none"><img src="//img.echosting.cafe24.com/design/skin/admin/ko_KR/btn_list_cart.gif"  onClick="category_add_basket('20','1', '3', 'A0000', false, '1', 'P000000U', 'A', 'F', '0');" alt="장바구니 담기" class="ec-admin-icon cart" /></a><span>장바구니</span>
+</li>
+                        <li class="zoom">
+<a href="#none"><img src="//img.echosting.cafe24.com/design/skin/admin/ko_KR/btn_prd_zoom.gif"  onClick="zoom('20', '1', '3','', '');" style="cursor:pointer" alt="상품 큰 이미지 보기" /></a><span>확대보기</span>
+</li>
+                        <li class="pop">
+<a href="/product/베네핏-트리플-효소-5박스150포/20/category/1/display/3/" target="blank"><img src="/_dj/img/button_other_04.png"/></a><span>새창보기</span>
+</li>
+                      </ul>
+</div>
+                  <div class="prdImg  scroll-fade dj-viewport">
+                    <a href="/product/베네핏-트리플-효소-5박스150포/20/category/1/display/3/" name="anchorBoxName_20">
+                        <img src="//hpercent.co.kr/web/product/medium/202204/94330bf7ce53627820063fd75ec1b45b.jpg" id="eListPrdImage20_3" class="thumb_Img" alt="베네핏 트리플 효소 5박스(150포)"/>                    </a>              
+                </div>
+            </div>
+            <div class="description" onclick="window.location.href='/product/베네핏-트리플-효소-5박스150포/20/category/1/display/3/';">
+                <div class="inner">
+                     <div class="displaynone">
+                                           </div>
+                   <div class="brand displaynone"></div>
+                   <strong class="name"><a href="/product/베네핏-트리플-효소-5박스150포/20/category/1/display/3/" class=""><span style="font-size:12px;color:#555555;">베네핏 트리플 효소 5박스(150포)</span></a></strong>
+                   <ul class="spec">
+<li class="summary_line displaynone">         
+                       </li>
+<li class="summary displaynone"></li>
+                       <li class="price_all">
+                           <span class="custom ">275,000원</span>
+                           <span class="price  displaynone"><span class="strike">218,000원</span><span class="pri">218,000원</span></span>
+                           <span class="sale displaynone"></span> 
+                       </li>
+                       <li class="review_c displaynone">리뷰 : </li>
+                   </ul>
+<div class="icon">
+                       <div class="promotion">      </div>
+                   </div>
+                   </div>
+             </div>
+         </div>
+</li>
+<li id="anchorBoxId_19" class="item_list xans-record-">
+    <div class="item_list_box">
+            <div class="thumbnail">
+                <div class="custom_pro " d-price="165000" d-custom="139000"></div>
+                <div class="button">
+                      <ul>
+<li class="likeButton likePrd likePrd_19"><button type="button"><img src="//img.echosting.cafe24.com/skin/admin_ko_KR/product/ico_likeit.png"  class="likePrdIcon" product_no="19" category_no="1" icon_status="off" alt="좋아요 등록 전" />LIKE<strong><span class="likePrdCount likePrdCount_19">0</span></strong></button></li>
+                      </ul>
+<ul class="other">
+<li class="option"><span>옵션보기</span>
+</li>
+                        <li class="cart">
+<a href="#none"><img src="//img.echosting.cafe24.com/design/skin/admin/ko_KR/btn_list_cart.gif"  onClick="category_add_basket('19','1', '3', 'A0000', false, '1', 'P000000T', 'A', 'F', '0');" alt="장바구니 담기" class="ec-admin-icon cart" /></a><span>장바구니</span>
+</li>
+                        <li class="zoom">
+<a href="#none"><img src="//img.echosting.cafe24.com/design/skin/admin/ko_KR/btn_prd_zoom.gif"  onClick="zoom('19', '1', '3','', '');" style="cursor:pointer" alt="상품 큰 이미지 보기" /></a><span>확대보기</span>
+</li>
+                        <li class="pop">
+<a href="/product/베네핏-트리플-효소-3박스90포/19/category/1/display/3/" target="blank"><img src="/_dj/img/button_other_04.png"/></a><span>새창보기</span>
+</li>
+                      </ul>
+</div>
+                  <div class="prdImg  scroll-fade dj-viewport">
+                    <a href="/product/베네핏-트리플-효소-3박스90포/19/category/1/display/3/" name="anchorBoxName_19">
+                        <img src="//hpercent.co.kr/web/product/medium/202204/086a5407366534af90cca0daef67ee89.jpg" id="eListPrdImage19_3" class="thumb_Img" alt="베네핏 트리플 효소 3박스(90포)"/>                    </a>              
+                </div>
+            </div>
+            <div class="description" onclick="window.location.href='/product/베네핏-트리플-효소-3박스90포/19/category/1/display/3/';">
+                <div class="inner">
+                     <div class="displaynone">
+                                           </div>
+                   <div class="brand displaynone"></div>
+                   <strong class="name"><a href="/product/베네핏-트리플-효소-3박스90포/19/category/1/display/3/" class=""><span style="font-size:12px;color:#555555;">베네핏 트리플 효소 3박스(90포)</span></a></strong>
+                   <ul class="spec">
+<li class="summary_line displaynone">         
+                       </li>
+<li class="summary displaynone"></li>
+                       <li class="price_all">
+                           <span class="custom ">165,000원</span>
+                           <span class="price  displaynone"><span class="strike">139,000원</span><span class="pri">139,000원</span></span>
+                           <span class="sale displaynone"></span> 
+                       </li>
+                       <li class="review_c displaynone">리뷰 : </li>
+                   </ul>
+<div class="icon">
+                       <div class="promotion">      </div>
+                   </div>
+                   </div>
+             </div>
+         </div>
+</li>
+<li id="anchorBoxId_18" class="item_list xans-record-">
+    <div class="item_list_box">
+            <div class="thumbnail">
+                <div class="custom_pro " d-price="110000" d-custom="95000"></div>
+                <div class="button">
+                      <ul>
+<li class="likeButton likePrd likePrd_18"><button type="button"><img src="//img.echosting.cafe24.com/skin/admin_ko_KR/product/ico_likeit.png"  class="likePrdIcon" product_no="18" category_no="1" icon_status="off" alt="좋아요 등록 전" />LIKE<strong><span class="likePrdCount likePrdCount_18">0</span></strong></button></li>
+                      </ul>
+<ul class="other">
+<li class="option"><span>옵션보기</span>
+</li>
+                        <li class="cart">
+<a href="#none"><img src="//img.echosting.cafe24.com/design/skin/admin/ko_KR/btn_list_cart.gif"  onClick="category_add_basket('18','1', '3', 'A0000', false, '1', 'P000000S', 'A', 'F', '0');" alt="장바구니 담기" class="ec-admin-icon cart" /></a><span>장바구니</span>
+</li>
+                        <li class="zoom">
+<a href="#none"><img src="//img.echosting.cafe24.com/design/skin/admin/ko_KR/btn_prd_zoom.gif"  onClick="zoom('18', '1', '3','', '');" style="cursor:pointer" alt="상품 큰 이미지 보기" /></a><span>확대보기</span>
+</li>
+                        <li class="pop">
+<a href="/product/베네핏-트리플-효소-2박스60포/18/category/1/display/3/" target="blank"><img src="/_dj/img/button_other_04.png"/></a><span>새창보기</span>
+</li>
+                      </ul>
+</div>
+                  <div class="prdImg  scroll-fade dj-viewport">
+                    <a href="/product/베네핏-트리플-효소-2박스60포/18/category/1/display/3/" name="anchorBoxName_18">
+                        <img src="//hpercent.co.kr/web/product/medium/202204/f2e0df5c3d19ba94899a61670649a0a9.jpg" id="eListPrdImage18_3" class="thumb_Img" alt="베네핏 트리플 효소 2박스(60포)"/>                    </a>              
+                </div>
+            </div>
+            <div class="description" onclick="window.location.href='/product/베네핏-트리플-효소-2박스60포/18/category/1/display/3/';">
+                <div class="inner">
+                     <div class="displaynone">
+                                           </div>
+                   <div class="brand displaynone"></div>
+                   <strong class="name"><a href="/product/베네핏-트리플-효소-2박스60포/18/category/1/display/3/" class=""><span style="font-size:12px;color:#555555;">베네핏 트리플 효소 2박스(60포)</span></a></strong>
+                   <ul class="spec">
+<li class="summary_line displaynone">         
+                       </li>
+<li class="summary displaynone"></li>
+                       <li class="price_all">
+                           <span class="custom ">110,000원</span>
+                           <span class="price  displaynone"><span class="strike">95,000원</span><span class="pri">95,000원</span></span>
+                           <span class="sale displaynone"></span> 
+                       </li>
+                       <li class="review_c displaynone">리뷰 : </li>
+                   </ul>
+<div class="icon">
+                       <div class="promotion">      </div>
+                   </div>
+                   </div>
+             </div>
+         </div>
+</li>
+<li id="anchorBoxId_17" class="item_list xans-record-">
+    <div class="item_list_box">
+            <div class="thumbnail">
+                <div class="custom_pro " d-price="55000" d-custom="49500"></div>
+                <div class="button">
+                      <ul>
+<li class="likeButton likePrd likePrd_17"><button type="button"><img src="//img.echosting.cafe24.com/skin/admin_ko_KR/product/ico_likeit.png"  class="likePrdIcon" product_no="17" category_no="1" icon_status="off" alt="좋아요 등록 전" />LIKE<strong><span class="likePrdCount likePrdCount_17">2</span></strong></button></li>
+                      </ul>
+<ul class="other">
+<li class="option"><a onclick="optionPreview(this,'listmain-2',17,'T')"" ><img src="//img.echosting.cafe24.com/design/skin/default/product/btn_option_view.gif"  id="btn_preview_listmain-217" class="option_preview" alt="" /></a><span>옵션보기</span>
+</li>
+                        <li class="cart">
+<a href="#none"><img src="//img.echosting.cafe24.com/design/skin/admin/ko_KR/btn_list_cart.gif"  onClick="CAPP_SHOP_NEW_PRODUCT_OPTIONSELECT.selectOptionCommon(17,  1, 'basket', '')" alt="장바구니 담기" class="ec-admin-icon cart" /></a><span>장바구니</span>
+</li>
+                        <li class="zoom">
+<a href="#none"><img src="//img.echosting.cafe24.com/design/skin/admin/ko_KR/btn_prd_zoom.gif"  onClick="zoom('17', '1', '3','', '');" style="cursor:pointer" alt="상품 큰 이미지 보기" /></a><span>확대보기</span>
+</li>
+                        <li class="pop">
+<a href="/product/베네핏-트리플-효소/17/category/1/display/3/" target="blank"><img src="/_dj/img/button_other_04.png"/></a><span>새창보기</span>
+</li>
+                      </ul>
+</div>
+                  <div class="prdImg  scroll-fade dj-viewport">
+                    <a href="/product/베네핏-트리플-효소/17/category/1/display/3/" name="anchorBoxName_17">
+                        <img src="//hpercent.co.kr/web/product/medium/202205/c8fbcc3546df3cb16a8caeb08f74a2b1.jpg" id="eListPrdImage17_3" class="thumb_Img" alt="베네핏 트리플 효소"/>                    </a>              
+                </div>
+            </div>
+            <div class="description" onclick="window.location.href='/product/베네핏-트리플-효소/17/category/1/display/3/';">
+                <div class="inner">
+                     <div class="displaynone">
+                                           </div>
+                   <div class="brand displaynone"></div>
+                   <strong class="name"><a href="/product/베네핏-트리플-효소/17/category/1/display/3/" class=""><span style="font-size:12px;color:#555555;">베네핏 트리플 효소</span></a></strong>
+                   <ul class="spec">
+<li class="summary_line displaynone">         
+                       </li>
+<li class="summary displaynone"></li>
+                       <li class="price_all">
+                           <span class="custom ">55,000원</span>
+                           <span class="price  displaynone"><span class="strike">49,500원</span><span class="pri">49,500원</span></span>
+                           <span class="sale displaynone"></span> 
+                       </li>
+                       <li class="review_c displaynone">리뷰 : </li>
+                   </ul>
+<div class="icon">
+                       <div class="promotion">      </div>
+                   </div>
+                   </div>
+             </div>
+         </div>
+</li>
+<li id="anchorBoxId_13" class="item_list xans-record-">
+    <div class="item_list_box">
+            <div class="thumbnail">
+                <div class="custom_pro " d-price="45000" d-custom="40500"></div>
+                <div class="button">
+                      <ul>
+<li class="likeButton likePrd likePrd_13"><button type="button"><img src="//img.echosting.cafe24.com/skin/admin_ko_KR/product/ico_likeit.png"  class="likePrdIcon" product_no="13" category_no="1" icon_status="off" alt="좋아요 등록 전" />LIKE<strong><span class="likePrdCount likePrdCount_13">9</span></strong></button></li>
+                      </ul>
+<ul class="other">
+<li class="option"><a onclick="optionPreview(this,'listmain-2',13,'T')"" ><img src="//img.echosting.cafe24.com/design/skin/default/product/btn_option_view.gif"  id="btn_preview_listmain-213" class="option_preview" alt="" /></a><span>옵션보기</span>
+</li>
+                        <li class="cart">
+<a href="#none"><img src="//img.echosting.cafe24.com/design/skin/admin/ko_KR/btn_list_cart.gif"  onClick="CAPP_SHOP_NEW_PRODUCT_OPTIONSELECT.selectOptionCommon(13,  1, 'basket', '')" alt="장바구니 담기" class="ec-admin-icon cart" /></a><span>장바구니</span>
+</li>
+                        <li class="zoom">
+<a href="#none"><img src="//img.echosting.cafe24.com/design/skin/admin/ko_KR/btn_prd_zoom.gif"  onClick="zoom('13', '1', '3','', '');" style="cursor:pointer" alt="상품 큰 이미지 보기" /></a><span>확대보기</span>
+</li>
+                        <li class="pop">
+<a href="/product/헬시퍼센트-베네핏-아르기닌-시너지/13/category/1/display/3/" target="blank"><img src="/_dj/img/button_other_04.png"/></a><span>새창보기</span>
+</li>
+                      </ul>
+</div>
+                  <div class="prdImg  scroll-fade dj-viewport">
+                    <a href="/product/헬시퍼센트-베네핏-아르기닌-시너지/13/category/1/display/3/" name="anchorBoxName_13">
+                        <img src="//hpercent.co.kr/web/product/medium/202207/9c30461efa3f4385fe98208f323b40d6.jpg" id="eListPrdImage13_3" class="thumb_Img" alt="헬시퍼센트 베네핏 아르기닌 시너지"/>                    </a>              
+                </div>
+            </div>
+            <div class="description" onclick="window.location.href='/product/헬시퍼센트-베네핏-아르기닌-시너지/13/category/1/display/3/';">
+                <div class="inner">
+                     <div class="displaynone">
+                                           </div>
+                   <div class="brand displaynone"></div>
+                   <strong class="name"><a href="/product/헬시퍼센트-베네핏-아르기닌-시너지/13/category/1/display/3/" class=""><span style="font-size:12px;color:#555555;">헬시퍼센트 베네핏 아르기닌 시너지</span></a></strong>
+                   <ul class="spec">
+<li class="summary_line displaynone">         
+                       </li>
+<li class="summary displaynone"></li>
+                       <li class="price_all">
+                           <span class="custom ">45,000원</span>
+                           <span class="price  displaynone"><span class="strike">40,500원</span><span class="pri">40,500원</span></span>
+                           <span class="sale displaynone"></span> 
+                       </li>
+                       <li class="review_c displaynone">리뷰 : </li>
+                   </ul>
+<div class="icon">
+                       <div class="promotion">      </div>
+                   </div>
+                   </div>
+             </div>
+         </div>
+</li>
+<li id="anchorBoxId_26" class="item_list xans-record-">
+    <div class="item_list_box">
+            <div class="thumbnail">
+                <div class="custom_pro " d-price="120000" d-custom="95000"></div>
+                <div class="button">
+                      <ul>
+<li class="likeButton likePrd likePrd_26"><button type="button"><img src="//img.echosting.cafe24.com/skin/admin_ko_KR/product/ico_likeit.png"  class="likePrdIcon" product_no="26" category_no="1" icon_status="off" alt="좋아요 등록 전" />LIKE<strong><span class="likePrdCount likePrdCount_26">0</span></strong></button></li>
+                      </ul>
+<ul class="other">
+<li class="option"><span>옵션보기</span>
+</li>
+                        <li class="cart">
+<a href="#none"><img src="//img.echosting.cafe24.com/design/skin/admin/ko_KR/btn_list_cart.gif"  onClick="category_add_basket('26','1', '3', 'A0000', false, '1', 'P00000BA', 'A', 'F', '0');" alt="장바구니 담기" class="ec-admin-icon cart" /></a><span>장바구니</span>
+</li>
+                        <li class="zoom">
+<a href="#none"><img src="//img.echosting.cafe24.com/design/skin/admin/ko_KR/btn_prd_zoom.gif"  onClick="zoom('26', '1', '3','', '');" style="cursor:pointer" alt="상품 큰 이미지 보기" /></a><span>확대보기</span>
+</li>
+                        <li class="pop">
+<a href="/product/베네핏슬림시너지-2박스28포/26/category/1/display/3/" target="blank"><img src="/_dj/img/button_other_04.png"/></a><span>새창보기</span>
+</li>
+                      </ul>
+</div>
+                  <div class="prdImg  scroll-fade dj-viewport">
+                    <a href="/product/베네핏슬림시너지-2박스28포/26/category/1/display/3/" name="anchorBoxName_26">
+                        <img src="//hpercent.co.kr/web/product/medium/202206/36dd29c0090b837d89c8e9b8389f2723.jpg" id="eListPrdImage26_3" class="thumb_Img" alt="베네핏슬림시너지 2박스(28포)"/>                    </a>              
+                </div>
+            </div>
+            <div class="description" onclick="window.location.href='/product/베네핏슬림시너지-2박스28포/26/category/1/display/3/';">
+                <div class="inner">
+                     <div class="displaynone">
+                                           </div>
+                   <div class="brand displaynone"></div>
+                   <strong class="name"><a href="/product/베네핏슬림시너지-2박스28포/26/category/1/display/3/" class=""><span style="font-size:12px;color:#555555;">베네핏슬림시너지 2박스(28포)</span></a></strong>
+                   <ul class="spec">
+<li class="summary_line displaynone">         
+                       </li>
+<li class="summary displaynone"></li>
+                       <li class="price_all">
+                           <span class="custom ">120,000원</span>
+                           <span class="price  displaynone"><span class="strike">95,000원</span><span class="pri">95,000원</span></span>
+                           <span class="sale displaynone"></span> 
+                       </li>
+                       <li class="review_c displaynone">리뷰 : </li>
+                   </ul>
+<div class="icon">
+                       <div class="promotion">      </div>
+                   </div>
+                   </div>
+             </div>
+         </div>
+</li>
+<li id="anchorBoxId_27" class="item_list xans-record-">
+    <div class="item_list_box">
+            <div class="thumbnail">
+                <div class="custom_pro " d-price="180000" d-custom="139000"></div>
+                <div class="button">
+                      <ul>
+<li class="likeButton likePrd likePrd_27"><button type="button"><img src="//img.echosting.cafe24.com/skin/admin_ko_KR/product/ico_likeit.png"  class="likePrdIcon" product_no="27" category_no="1" icon_status="off" alt="좋아요 등록 전" />LIKE<strong><span class="likePrdCount likePrdCount_27">0</span></strong></button></li>
+                      </ul>
+<ul class="other">
+<li class="option"><span>옵션보기</span>
+</li>
+                        <li class="cart">
+<a href="#none"><img src="//img.echosting.cafe24.com/design/skin/admin/ko_KR/btn_list_cart.gif"  onClick="category_add_basket('27','1', '3', 'A0000', false, '1', 'P00000BB', 'A', 'F', '0');" alt="장바구니 담기" class="ec-admin-icon cart" /></a><span>장바구니</span>
+</li>
+                        <li class="zoom">
+<a href="#none"><img src="//img.echosting.cafe24.com/design/skin/admin/ko_KR/btn_prd_zoom.gif"  onClick="zoom('27', '1', '3','', '');" style="cursor:pointer" alt="상품 큰 이미지 보기" /></a><span>확대보기</span>
+</li>
+                        <li class="pop">
+<a href="/product/베네핏슬림시너지-3박스42포/27/category/1/display/3/" target="blank"><img src="/_dj/img/button_other_04.png"/></a><span>새창보기</span>
+</li>
+                      </ul>
+</div>
+                  <div class="prdImg  scroll-fade dj-viewport">
+                    <a href="/product/베네핏슬림시너지-3박스42포/27/category/1/display/3/" name="anchorBoxName_27">
+                        <img src="//hpercent.co.kr/web/product/medium/202206/f261d41b6a65a3aede795d5428e149e6.jpg" id="eListPrdImage27_3" class="thumb_Img" alt="베네핏슬림시너지 3박스(42포)"/>                    </a>              
+                </div>
+            </div>
+            <div class="description" onclick="window.location.href='/product/베네핏슬림시너지-3박스42포/27/category/1/display/3/';">
+                <div class="inner">
+                     <div class="displaynone">
+                                           </div>
+                   <div class="brand displaynone"></div>
+                   <strong class="name"><a href="/product/베네핏슬림시너지-3박스42포/27/category/1/display/3/" class=""><span style="font-size:12px;color:#555555;">베네핏슬림시너지 3박스(42포)</span></a></strong>
+                   <ul class="spec">
+<li class="summary_line displaynone">         
+                       </li>
+<li class="summary displaynone"></li>
+                       <li class="price_all">
+                           <span class="custom ">180,000원</span>
+                           <span class="price  displaynone"><span class="strike">139,000원</span><span class="pri">139,000원</span></span>
+                           <span class="sale displaynone"></span> 
+                       </li>
+                       <li class="review_c displaynone">리뷰 : </li>
+                   </ul>
+<div class="icon">
+                       <div class="promotion">      </div>
+                   </div>
+                   </div>
+             </div>
+         </div>
+</li>
+<li id="anchorBoxId_28" class="item_list xans-record-">
+    <div class="item_list_box">
+            <div class="thumbnail">
+                <div class="custom_pro " d-price="240000" d-custom="179000"></div>
+                <div class="button">
+                      <ul>
+<li class="likeButton likePrd likePrd_28"><button type="button"><img src="//img.echosting.cafe24.com/skin/admin_ko_KR/product/ico_likeit.png"  class="likePrdIcon" product_no="28" category_no="1" icon_status="off" alt="좋아요 등록 전" />LIKE<strong><span class="likePrdCount likePrdCount_28">0</span></strong></button></li>
+                      </ul>
+<ul class="other">
+<li class="option"><span>옵션보기</span>
+</li>
+                        <li class="cart">
+<a href="#none"><img src="//img.echosting.cafe24.com/design/skin/admin/ko_KR/btn_list_cart.gif"  onClick="category_add_basket('28','1', '3', 'A0000', false, '1', 'P00000BC', 'A', 'F', '0');" alt="장바구니 담기" class="ec-admin-icon cart" /></a><span>장바구니</span>
+</li>
+                        <li class="zoom">
+<a href="#none"><img src="//img.echosting.cafe24.com/design/skin/admin/ko_KR/btn_prd_zoom.gif"  onClick="zoom('28', '1', '3','', '');" style="cursor:pointer" alt="상품 큰 이미지 보기" /></a><span>확대보기</span>
+</li>
+                        <li class="pop">
+<a href="/product/베네핏슬림시너지-4박스56포/28/category/1/display/3/" target="blank"><img src="/_dj/img/button_other_04.png"/></a><span>새창보기</span>
+</li>
+                      </ul>
+</div>
+                  <div class="prdImg  scroll-fade dj-viewport">
+                    <a href="/product/베네핏슬림시너지-4박스56포/28/category/1/display/3/" name="anchorBoxName_28">
+                        <img src="//hpercent.co.kr/web/product/medium/202206/ace898f1267e025ea6ecd7576a6adc43.jpg" id="eListPrdImage28_3" class="thumb_Img" alt="베네핏슬림시너지 4박스(56포)"/>                    </a>              
+                </div>
+            </div>
+            <div class="description" onclick="window.location.href='/product/베네핏슬림시너지-4박스56포/28/category/1/display/3/';">
+                <div class="inner">
+                     <div class="displaynone">
+                                           </div>
+                   <div class="brand displaynone"></div>
+                   <strong class="name"><a href="/product/베네핏슬림시너지-4박스56포/28/category/1/display/3/" class=""><span style="font-size:12px;color:#555555;">베네핏슬림시너지 4박스(56포)</span></a></strong>
+                   <ul class="spec">
+<li class="summary_line displaynone">         
+                       </li>
+<li class="summary displaynone"></li>
+                       <li class="price_all">
+                           <span class="custom ">240,000원</span>
+                           <span class="price  displaynone"><span class="strike">179,000원</span><span class="pri">179,000원</span></span>
+                           <span class="sale displaynone"></span> 
+                       </li>
+                       <li class="review_c displaynone">리뷰 : </li>
+                   </ul>
+<div class="icon">
+                       <div class="promotion">      </div>
+                   </div>
+                   </div>
+             </div>
+         </div>
+</li>
+
+     </ul>
+</div>
+</div>
+</div>
+
+
+<div class="on" id="section_on_off">
+    <!--★ B R A N D ★-->
+    <div id="main_section_3" class="main_section"> 
+    <div class="inner">    
+        <ul><li>
+                <div class="title scroll-fade dj-viewport motion1">
+                    <!--------------------------------------------------------------------------------------------------
+                        ※ 타이틀 수정 - 텍스트만 변경바랍니다.
+                    --------------------------------------------------------------------------------------------------->
+                    <h2>BRAND</h2><p class="bar"></p>
+                </div>
+            </li><li>
+        </li></ul><ul class="banner" df-banner-code="main-bottom" hidden><li class="scroll-fade dj-viewport" df-banner-clone><a href="%7B#href%7D">{#item}</a></li>
+            <li class="text scroll-fade dj-viewport">
+                <h2>균형있는 라이프를 위한 새로운 여정</h2>
+                <p class="ment"> 
+                   소중한 나와 가족을 위해, 다양한 취향과 라이프 스타일에 꼭 맞춰<br/>
+                   일시적인 변화가 아닌 지속가능한 라이프 케어를 위해<br/>
+                   헬시퍼센트의 스토리를 시작합니다.<br/>
+                   일상에 ‘헬시퍼센트‘ 작은 습관 하나면 충분하도록…<br/></p>
+                <a href="/shopinfo/company.html">BRAND STORY <i class="xi-arrow-right xi-05x"></i></a>
+            </li>
+        </ul></div>
+</div>
+</div>
+    
+
+<div class="on" id="section_on_off">
+    <!--★ R E V I E W ★-->
+    <div id="main_section_4" class="main_section"> 
+    <div class="inner">    
+        <ul><li>
+                <div class="title scroll-fade dj-viewport motion1">
+                    <!--------------------------------------------------------------------------------------------------
+                        ※ 타이틀 수정 - 텍스트만 변경바랍니다.
+                    --------------------------------------------------------------------------------------------------->
+                    <h2>BEST REVIEW </h2><p class="bar"></p>
+                </div>
+            </li><li>
+        </li></ul><ul><!-- 리뷰 시작 --><div id="dj-maz" class="main_maz main_section_width">
+           <div class="xans-element- xans-board xans-board-listpackage-4 xans-board-listpackage xans-board-4 "><div class="maz_list">       
+                
+                   <div class="xans-element- xans-board xans-board-fixed-4 xans-board-fixed xans-board-4"><!--
+                           $count = 4
+                           $product_name_cut = 30
+                           $login_page_url = /member/login.html
+                           $deny_access_url = /index.html
+                       -->
+<ul>
+<div class="list xans-record-">
+             <div class="inner">
+              <ul>
+<li class="tumb">
+                    <a href="#none"><img src="//hpercent.co.kr/file_data/hpercent//2021/11/17/d5b4789aeaba0e1956a23af115c22d1b.png" onerror="this.src='//hpercent.co.kr/web/product/big/202207/5594270b4de5568547439221da44ed55.jpg'" onclick="location.href='/board/p_review/review.html?no=57&board_no=4';"/></a>
+                  </li>
+                <li class="bor subject"><a href="/board/p_review/read.html?no=57&board_no=4">일석이조</a></li>
+                <li class="bor con"><a href="/board/p_review/read.html?no=57&board_no=4">이 제품은 액상형이라 먹기가 넘 편한거 같아요~스틱형이라 손쉽게 하루에 한포 간편하게 먹을수 있고 외출시 가지고 다니면서 어디서든 먹을수 있을거 같아요~약사가 만들어 기본기 탄탄하고한포에 건강한 아미노산을 꽉꽉 채운 아미노산 완전체라고 하니 믿고 먹을만 하겠죠!!요즘 힘들어하는 신랑을 위해서 이렇게 협찬해 주셔서 너무나 감사드립니다~신랑은 탄산수랑 같이 마시니 넘 좋다고 합니다!!블루베리 맛이 나서 거부감도 안 든다고 하네요~😄먹고나서 생각보다 덜 피곤한 느낌이 든다고 하네요😙흡수율이 높아진 아르기닌은 체내의 콜라겐 합성률도 높이기 때문에 피부 건강및 관절건강에도 도움을 준다고 하니 저희 신랑에게 정말 딱인 제품이었네요!!!리뷰 원본 보기&nbsp;* 자체 진행한 브랜드 체험단 후기입니다 *</a></li>
+                <li class="point"><img src="//img.echosting.cafe24.com/skin/base/board/ico_point5.gif" alt="5점"/></li>
+              </ul>
+</div>
+           </div>
+                                      <div class="list xans-record-">
+             <div class="inner">
+              <ul>
+<li class="tumb">
+                    <a href="#none"><img src="//hpercent.co.kr/file_data/hpercent//2021/11/17/289f2ea1cb1e8a489f9ab2f646a75093.png" onerror="this.src='//hpercent.co.kr/web/product/big/202207/5594270b4de5568547439221da44ed55.jpg'" onclick="location.href='/board/p_review/review.html?no=56&board_no=4';"/></a>
+                  </li>
+                <li class="bor subject"><a href="/board/p_review/read.html?no=56&board_no=4">자도 자도 피곤</a></li>
+                <li class="bor con"><a href="/board/p_review/read.html?no=56&board_no=4">요즘 왜이렇게 자도 자도 피곤하고 축축 처지는 기분인지저에게 활력을 더해줄 무언가가 필요해서#헬시퍼센트 아르기닌 시너지를 먹어봤어요💪저는 이번에 #아르기닌 처음 먹어봤는데이미 챙겨드시는 분들도 많더라구요?헬시퍼센트 아르기닌 시너지는 국내최초 아르기닌+오르니틴 배합으로 만들어져서 즉각적인 활력 충전이 되고 운동효과 향상에도 도움을 준다고 하네요👏처음 먹어보는거라 저는 맛이 어떨까 사실 조금 걱정되었는데의외로 너무 맛있네요?😲상콤달달한 맛인데 그대로 쭉 마셔도 맛있는데조금 쎄다 싶으시면 물에 타도 음료수같이 맛있어요!특히 탄산수에 타먹어도 맛있을듯🙌리뷰 원본 보기* 자체 진행한 브랜드 체험단 후기입니다 *</a></li>
+                <li class="point"><img src="//img.echosting.cafe24.com/skin/base/board/ico_point5.gif" alt="5점"/></li>
+              </ul>
+</div>
+           </div>
+                                      <div class="list xans-record-">
+             <div class="inner">
+              <ul>
+<li class="tumb">
+                    <a href="#none"><img src="//hpercent.co.kr/file_data/hpercent//2021/11/17/9f1ac851d3a8b853821c41416d6be666.png" onerror="this.src='//hpercent.co.kr/web/product/big/202207/5594270b4de5568547439221da44ed55.jpg'" onclick="location.href='/board/p_review/review.html?no=54&board_no=4';"/></a>
+                  </li>
+                <li class="bor subject"><a href="/board/p_review/read.html?no=54&board_no=4">운동 중간중간 섭취 중</a></li>
+                <li class="bor con"><a href="/board/p_review/read.html?no=54&board_no=4">요즘 만성피로에 체력도 떨어져 &nbsp;다이어트겸 운동을 시작 하며 나의 떨어진 체력을 up! 시키기위해 주변 지인추천으로 #베네핏아르기닌시너지 복용중국내 최초 아르기닌+오르니틴 배합 (특허)고함량 오르니틴 시너지로 흡수율up빠른 흡수율로 즉각적인 활력충전 효과 로#믿고드세요~액상형 농축된새콤한 체리맛이고 부담없이 간편하게 어디서나 섭추할 수 있어요. 난 물에희석해서 운동 중간중간 마시면서 섭취하는중~ 꾸준이 복용하면 효과 누릴수 있어요~리뷰 원본 보기* 자체 진행한 브랜드 체험단 후기입니다 *</a></li>
+                <li class="point"><img src="//img.echosting.cafe24.com/skin/base/board/ico_point5.gif" alt="5점"/></li>
+              </ul>
+</div>
+           </div>
+                                      <div class="list xans-record-">
+             <div class="inner">
+              <ul>
+<li class="tumb">
+                    <a href="#none"><img src="//hpercent.co.kr/file_data/hpercent//2021/11/17/22f2533ed3414fad6d0faab282dcfe12.png" onerror="this.src='//hpercent.co.kr/web/product/big/202207/5594270b4de5568547439221da44ed55.jpg'" onclick="location.href='/board/p_review/review.html?no=48&board_no=4';"/></a>
+                  </li>
+                <li class="bor subject"><a href="/board/p_review/read.html?no=48&board_no=4">헬스부스터</a></li>
+                <li class="bor con"><a href="/board/p_review/read.html?no=48&board_no=4">물에 타먹거나 탄산수와 함께 타먹으면 정말 맛있게 마실 수 있어요!리뷰 원본 보기*자체 진행한 브랜드 체험단 리뷰입니다*</a></li>
+                <li class="point"><img src="//img.echosting.cafe24.com/skin/base/board/ico_point5.gif" alt="5점"/></li>
+              </ul>
+</div>
+           </div>
+                       </ul>
+</div>
+                </div>
+</div>
+   
+              <p class="more_btn"><a href="/board/p_review/list.html?board_no=4">MORE +</a></p>
+              </div> 
+        </ul><!-- 리뷰 끝 --></div>
+</div>
+</div>
+    
+
+
+
+
+
+
+<div class="on" id="section_on_off">
+    <!--★ M E D I A ★-->
+    <!--//@import(/_dj/page/main/section_5.html)-->
+</div>
+
+
+<!-- <script src="/web/upload/dfloor_apps/banner/jcgSbm2QoDNDc3pBJEB3WrhM.js?v=1"></script>-->
+<script>
+    var ord=Math.random();
+    document.write('<script src="/web/upload/appfiles/ZaReJam3QiELznoZeGGkMG/590a5735cb9315a20583a98529987943.js?v='+ord+'"><\/script>');
+</script>
+<script type="text/javascript">
+        $('.slider_1').slick({  
+            prevArrow: $('.btn_prev'),
+            nextArrow: $('.btn_next'),
+            autoplay: true,
+            autoplaySpeed: 5000,
+            dots: true,
+            arrow: true,
+            infinite: true,
+            fade: true,
+            speed: 400,               
+            cssEase: 'linear',
+            accessibility: false,
+            pauseOnHover: false,                
+        });
+        var $status = $('.slider_tag span');
+        var $slickElement = $('.slider_1_top');
+        $slickElement.on('init reInit afterChange', function (event, slick, currentSlide, nextSlide) {
+            var i = (currentSlide ? currentSlide : 0) + 1;
+            $status.text(i + ' / ' + slick.slideCount);
+        }); 
+</script>
+<script>
+    var mainMiddle = document.getElementById("main_section_banner");
+    var middleBns = Array.prototype.slice.call(mainMiddle.querySelectorAll("li"));
+
+    middleBns.forEach(function(elm) {
+
+        var imgElm = elm.querySelector("img");
+        var title = elm.querySelector(".title");
+        var subTitle = elm.querySelector(".ment");
+        imgElm.addEventListener("load", function(e) {
+            if ( !e.target.alt || !~e.target.alt.search("|") ) return;
+            var textArr = e.target.alt.split("|");
+            title.innerText = textArr[0];
+            subTitle.innerText = textArr[1];
+        });
+    });
+</script>
+
+    </div>
+
+
+
+<!-- 하단 영역 -->
+
+
+
+<!----------------------------------------------------------------------------------------------------------------------
+
+  ※ SNS 아이콘 
+  ※ 표시된 이 외 아이콘 사용 원하실 경우 아래 주석 제거 후 사용하시면 됩니다. 
+  ※ 카카오플친과 네이버 톡톡의 경우 https://pf.kakao.com/test 와 같은 주소 부분만 변경하시면 됩니다.
+
+------------------------------------------------------------------------------------------------------------------------>
+
+<div id="scroll_sns_icon">
+    <ul><!-- 카카오채널 바뀐 아이콘 파일명 scroll_sns_icon_kakaochannel.png --><!--<li id="h-kakao-btn"></li>--><li><a href="#none" onclick="window.open('https://pf.kakao.com/_vqrJs','window','location=no, directories=no,resizable=no,status=no,toolbar=no,menubar=no, width=500,height=780,left=0, top=0, scrollbars=yes');"><img src="/web/hpercent/component/quick_but_01.png" alt="카카오채널" width="40px" height="40px"/></a></li>
+        <li><a href="https://www.instagram.com/official_hpercent/" target="_blank"><img src="/web/hpercent/component/quick_but_02.png" alt="인스타그램" width="40px" height="40px"/></a></li>
+
+        <!--li><a href="https://facebook.com" target="_blank"><img src="/_dj/img/scroll_sns_icon_facebook.png" alt="페이스북" /></a></li>
+        <li><a href="https://youtube.com" target="_blank"><img src="/_dj/img/scroll_sns_icon_youtube.png" alt="유튜브" /></a></li>
+        <li><a href="#none" onclick="window.open('http://talk.naver.com/','window','location=no, directories=no,resizable=no,status=no,toolbar=no,menubar=no, width=500,height=600,left=0, top=0, scrollbars=yes');"><img src="/_dj/img/scroll_sns_icon_navertalk.png" alt="네이버톡톡" /></a></li>
+        <li><a href="https://naver.com" target="_blank"><img src="/_dj/img/scroll_sns_icon_naverblog.png" alt="네이버블로그" /></a></li>-->
+    </ul></div>
+
+<!----------------------------------------------------------------------------------------------------------------------
+
+  ※ 위/아래 스크롤 아이콘
+
+------------------------------------------------------------------------------------------------------------------------>
+
+<div id="top_top"><img src="/_dj/img/scroll_icon_01.png" alt="스크롤-업!"/></div>
+<div id="bottom_bottom"><img src="/_dj/img/scroll_icon_02.png" alt="스크롤-다운!"/></div>
+
+
+
+
+
+<div id="footer">
+    <div class="xans-element- xans-layout xans-layout-footer footer_start "><ul class="xans-element- xans-layout xans-layout-footer inner"><div class="cs">          
+        
+        <!----------------------------------------------------------------------------------------------------------------------
+
+           ※ 하단 고객센터
+
+        ------------------------------------------------------------------------------------------------------------------------>
+        <div class="cs_left ">
+            <ul>
+<li class="title">
+                    CS<span></span>
+                </li>
+            </ul>
+<ul class="cs_info">
+<li class="tel">
+                    1577-4718
+                    <!--1577-4718 -->
+                </li>
+                <li class="tel_time">
+                    AM 9:00 - PM 6:00 <span>(주말 및 공휴일 휴무)</span>
+                </li>
+            </ul>
+</div>
+        
+        <!----------------------------------------------------------------------------------------------------------------------
+
+           ※ 상점관리 > 기본정보관리 > 내 쇼핑몰 정보에 입력한 내용이 노출됩니다.
+
+        ------------------------------------------------------------------------------------------------------------------------>
+        <div class="company_pg ">
+             <ul>
+<li class="title">COMPANY</li>
+            </ul>
+<div class="inner2">
+                <li class="info">
+                    <span>상호  <span>주식회사 헬시퍼센트</span></span>  <span>대표  <span class="han">선정우</span></span>  <span>사업자등록번호  <span>353-87-02107</span></span> <br/><span>통신판매업 신고   <span>2021-서울강남-04319</span></span><span> <span><a href="#none" onclick="window.open('http://www.ftc.go.kr/bizCommPop.do?wrkr_no=3538702107', 'bizCommPop', 'width=750, height=950;');return false;">[사업자정보확인]</a></span></span> <br/><span>전화  <span>1577-4718</span></span> <span>주소  <span> 서울특별시 강남구 논현로28길 33 (도곡동) 4층 (경빈빌딩)</span></span> <br/><span>개인정보관리책임자  <span>선정우 (custom@hpercent.co.kr)</span></span><br/>
+</li>
+            </div>
+        </div>
+        
+        <!----------------------------------------------------------------------------------------------------------------------
+
+          ※ 하단 은행정보
+
+        ------------------------------------------------------------------------------------------------------------------------>
+        <div class="cs_right"> 
+            <ul>
+<li class="title">BANK</li>
+            </ul>
+<ul class="account">
+<li class="info">                     
+                    <span class="han">기업은행</span> <span class="num">448-051591-04-010</span><br/><span>주식회사 헬시퍼센트</span>
+                </li>
+            </ul>
+</div>
+       
+
+    </div>
+</ul>
+<div style="text-align: center; font-weight: lighter; padding-top: 20px;">
+    <p>*헬시퍼센트가 제공하는 모든 콘텐츠는 저작권법에 보호받는 저작물로서, 무단으로 복제, 배포하는 경우에는 저작권법에 의하여 처벌을 받을 수 있습니다.</p>
+    <p style="padding-top: 10px; font-size: 10px; font-weight: bold;">copyrightⓒ 2021 헬시퍼센트. All rights reserved.</p>
+</div>
+<ul>
+<div class="company_i">
+        <div class="inner2">
+            <!--------★ PG사 이미지 ★--------------------------------------------------------->
+            <!--
+                    <li class="logo">
+
+                        <a href="https://cafe24.com/" target="blank"><img src="/_dj/img/bn_cafe24.png" /></a>
+                        <a href="#" target="blank"><img src="/_dj/img/pg_kg.jpg" style="margin:-5px 0 0" /></a>
+                    </li>
+            -->
+
+                    <li class="utilMenu">
+                        <a href="/member/agreement.html">이용약관</a>
+                        <a href="/member/privacy.html">개인정보취급방침</a>
+                        <a href="/shopinfo/guide.html">이용안내</a>
+                    </li>
+                    <!--<li class="info">
+                        고객님은 안전거래를 위해 결제시 저희 쇼핑몰에서 가입한 구매안전 서비스를 이용하실 수 있습니다. <a href="#none">서비스가입사실확인</a>
+                    </li>-->
+        </div>
+    	<a href="https://iniweb.inicis.com/popup/common/popup_escrow_notice.jsp?mid=ECAhper7aa" target="_blank" style="display: inline-block; padding-top: 30px;"><img src="https://www.hpercent.co.kr/web/hpercent/component/bnr_escrow_660x94.jpg" width="660px" height="94px" border="0" style="cursor:pointer"/></a>
+    </div>
+</ul>
+</div>
+</div>
+</div>
+
+<script type="text/javascript" src="/_dj/js/scroll-transition-fade.js"></script>
+
+
+<!-- 참고: 결제를 위한 필수 영역 -->
+<div id="progressPaybar" style="display:none;">
+    <div id="progressPaybarBackground" class="layerProgress"></div>
+    <div id="progressPaybarView">
+        <div class="box">
+            <p class="graph">
+                <span><img src="//img.echosting.cafe24.com/skin/base_ko_KR/layout/txt_progress.gif" alt="현재 결제가 진행중입니다."/></span>
+                <span><img src="//img.echosting.cafe24.com/skin/base/layout/img_loading.gif" alt=""/></span>
+            </p>
+            <p class="txt">
+                본 결제 창은 결제완료 후 자동으로 닫히며,결제 진행 중에 본 결제 창을 닫으시면<br/>
+                주문이 되지 않으니 결제 완료 될 때 까지 닫지 마시기 바랍니다.
+            </p>
+        </div>
+    </div>
+</div>
+<!-- //참고 -->
+
+
+    <!--
+    <script type="text/javascript">
+        Kakao.init('87d6a1d15c9a22dd548e8779290a4252');
+        Kakao.Channel.createAddChannelButton({
+          // container: '#h-kakao-btn',
+          channelPublicId: '_vqrJs' // 카카오톡 채널 홈 URL에 명시된 id
+        });
+    </script> 
+	-->
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-MF39SCF"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+<span itemscope="" itemtype="https://schema.org/Organization">
+<link itemprop="url" href="https://hpercent.co.kr">
+</span>
+
+                <script>
+                try {
+                    // Account ID 적용
+                    if (!wcs_add) var wcs_add = {};
+                    wcs_add["wa"] = "s_40b916d07284";
+            
+                    // 마일리지 White list가 있을 경우
+                    wcs.mileageWhitelist = ["hpercent.cafe24.com", "www.hpercent.cafe24.com", "m.hpercent.cafe24.com", "hpercent.co.kr", "www.hpercent.co.kr", "m.hpercent.co.kr"];
+
+                    // 네이버 페이 White list가 있을 경우
+                    wcs.checkoutWhitelist = ["hpercent.cafe24.com", "www.hpercent.cafe24.com", "m.hpercent.cafe24.com", "hpercent.co.kr", "www.hpercent.co.kr", "m.hpercent.co.kr"];
+                
+                    // 레퍼러 (스크립트 인젠션 공격 대응 strip_tags) ECQAINT-15101
+                    wcs.setReferer("");
+
+                    // 유입 추적 함수 호출
+                    wcs.inflow("hpercent.co.kr");
+
+                    // 로그수집
+                    wcs_do();
+                } catch (e) {};
+                </script>
+            
+<script type="text/javascript" src="//developers.kakao.com/sdk/js/kakao.min.js" charset="utf-8"></script>
+<script type="text/javascript" src="/ind-script/i18n.php?lang=ko_KR&domain=front&v=2211021144" charset="utf-8"></script>
+
+<script src="/ind-script/optimizer.php?filename=zVlbU-M2FH4Hv-7vcOl2On0lobRMoTDAlmdFPk4OlnVUXQjeX99jO-ySBd_kMNPJxLGFvk9H5y6cbqiE9ORnm-ZWlLAlW6QWHAUrIX10KZ78ppNH9yntmxfQCFmkj_8GsNXu53Pya_LTRCQ8e7BaKLcbSCRRgTCXJVgVtYUEZJLraKgmSTpXKH0UxUnyC3-iFue_erI_6M1YWjN-z7qZ8OCRJ5Q8S_sU5FVz84B-c__1THiRlKgn8ChcMQru-X4Y5YxF7fMR9CRDLdY52XJJ2ltSCuww7kYFd2rMwmK2HiFP8KiGZ-WWGk0dOVKMIH3kyRwp1HC0ElqPkaulkFSWpMfOfhaao1GzaxsLfvwqDc5DaRTb5X2QMCa9ohUqSG9f4Vv5erTSgSspCzzktmimLZgHLWuF1vOywGFTdjrxWIYeIdhV0y9t9LymUOJrpUhkk0Bl8KJe93rlwD51GacDbEhVOarRrpdBLoLytQpcKaxfvON105Pkao0N6P-RsjNOINqxRt1cJhAO9XouSwleZHU67PTGuw2ZPbOeN8b6SxSC0qK-3uAzqL5c1EOzbGLxS28odkE57tdkq0t0fjL4FnKwoCUsg61_qxuLcrr4DoSVm0lR4UWeV2-rz6DpjApr5JT3JBSyxci-mPDbQMI3ws2mrX1EZ-4tPTMYdlz4uBU2oAx8-D42QmdqcmKZsAAnSmQbfxg_J1V_MDUpkoKrTUHDafq7BFPj5G_Y1t-btnpdm7qm3IEC6aOodhp5dF1txgT8O1ocv6FrpYso7Esd35Yu4Z5WFnwVPsQJ0uoz_f3ZW9FI1Tw3j3ekMgr-0LRx2XKA9KIU64OTnqHjDrFC7hQPSH3BdHdcfhW0XoyRjtgruGXihXAFHNx850Fnb5qH-bQP5Sz__Ua27DlATKbSh5FpgTo7CNFZTLf1HtE_bTbudL2O_uOl4UkdL3VsugN5FF7uno5zPsIKP1eSQ9GEmIZyv0hFtZX7FKfxieE7yV1THWI4LrGAdGFpy2e3pZAbiGeZEZGv8LsdTabZ4dIzPqygSheh7t94sKRo_d7CE8LWC1XsbpcUdI9kCxI22-Pi0WRVj8aBgpRxwJXq9YcbMsH8cAznkYQM9GjqSmiuvXuwLfBK6-GmcONLBdqjR3CTFhCu0rK9RuNKKFdgo-HXNgMr--w-QNCW5_kMpr-fGsUxGF0DLBwBfLybs5crVNDbwg3gz8CQw_j1H9Bt-tP2CALZnwgGGLhngxnw2wZ-T5yYlrPkaDw73qFAQ45znfpSVDNk-MOKLN6VToMnbiRQNjRcCLbxXh2UxyatxlNUdRXcBeg8w-5RzXL2S3wChbogPc_L_sT6pUx1AH_dMd2L1UF46kPaLA01ZG3TcaFzis-sSmApVgpmSGSE31hScDzinzBDhu98C9ABNhGVpa3Mx9xC4DT_cttEinGvwSwFD-f4zDP_Aw&type=js&k=851ddb759082a47077abaab3390b7d58935a998a&t=1667276205" ></script><script src="/ind-script/optimizer.php?filename=rc5BEsIgDIXhvbj1HFl4FE9AQwZCgSABnd7etjN6gNrdW7z55ocgmYDQDKWmECo1pNKhjikxmtBzAnVkHCn7AjpzuYNxEaKCi5eo16g3OIIku8joMFll3LR9HNZWACVnKf8IWdxI9C17DsbZvJje55loO3lpy2Hx99rp4kX0vLo8UmcNUh-Ba-XiV_oD&type=js&k=32b9a2ae9e1a9a8000088558e58fb808d2a01165&t=1637657956&user=T" ></script>
+<script type="text/javascript">
+CAFE24.MOBILE_WEB = false; var mobileWeb = CAFE24.MOBILE_WEB;
+try {
+var isUseLoginKeepingSubmit = false;
+// isSeqNoKeyExpiretime
+function isSeqNoKeyExpiretime(iExpiretime)
+{
+var sDate = new Date();
+var iNow = Math.floor(sDate.getTime() / 1000);
+// 유효시간 확인
+if (iExpiretime > iNow) {
+return false;
+}
+return true;
+}
+function isUseLoginKeeping()
+{
+// 디바이스 확인
+if (EC_MOBILE_DEVICE === false) {
+return;
+}
+// 로그인 여부
+if (sessionStorage.getItem('member_' + CAFE24.SDE_SHOP_NUM) !== null) {
+return;
+}
+var sLoginKeepingInfo = localStorage.getItem('use_login_keeping_info');
+var iSeqnoExpiretime;
+var iSeqNoKey;
+if (sLoginKeepingInfo == null) {
+iSeqnoExpiretime = localStorage.getItem('seq_no_key_expiretime');
+iSeqNoKey = localStorage.getItem('seq_no_key');
+// 유효시간, key 값 확인
+if (iSeqnoExpiretime === null || iSeqNoKey === null) {
+return;
+}
+} else {
+var oLoginKeepingInfo = JSON.parse(sLoginKeepingInfo);
+iSeqNoKey = oLoginKeepingInfo.seq_no_key;
+iSeqnoExpiretime = oLoginKeepingInfo.seq_no_key_expiretime;
+if (isNaN(iSeqNoKey) === true || isNaN(iSeqnoExpiretime) === true) {
+return;
+}
+}
+if (isSeqNoKeyExpiretime(iSeqnoExpiretime) === false) {
+return;
+}
+useLoginKeepingSubmit();
+}
+function findGetParamValue(paramKey) 
+{
+var result = null,
+tmp = [];
+location.search.substr(1).split('&').forEach(function (item) {
+tmp = item.split('=');
+if (tmp[0] === paramKey) result = decodeURIComponent(tmp[1]);
+});
+return result;
+}
+function useLoginKeepingSubmit()
+{
+var iSeqnoExpiretime;
+var iSeqNoKey;
+var sUseLoginKeepingIp;
+var sLoginKeepingInfo = localStorage.getItem('use_login_keeping_info');
+if (sLoginKeepingInfo == null) {
+iSeqnoExpiretime = localStorage.getItem('seq_no_key_expiretime');
+iSeqNoKey = localStorage.getItem('seq_no_key');
+} else {
+var oLoginKeepingInfo = JSON.parse(sLoginKeepingInfo);
+iSeqNoKey = oLoginKeepingInfo.seq_no_key;
+iSeqnoExpiretime = oLoginKeepingInfo.seq_no_key_expiretime;
+sUseLoginKeepingIp = oLoginKeepingInfo.use_login_keeping_ip;
+}
+var oForm = document.createElement('form');
+oForm.method = 'post';
+oForm.action = '/exec/front/member/LoginKeeping';
+document.body.appendChild(oForm);
+var oSeqNoObj = document.createElement('input');
+oSeqNoObj.name = 'seq_no_key';
+oSeqNoObj.type = 'hidden';
+oSeqNoObj.value = iSeqNoKey;
+oForm.appendChild(oSeqNoObj);
+oSeqNoObj = document.createElement('input');
+oSeqNoObj.name = 'seq_no_key_expiretime';
+oSeqNoObj.type = 'hidden';
+oSeqNoObj.value = iSeqnoExpiretime;
+oForm.appendChild(oSeqNoObj);
+var returnUrl = findGetParamValue('returnUrl');
+if (returnUrl == '' || returnUrl == null) {
+returnUrl = location.pathname + location.search;
+}
+oSeqNoObj = document.createElement('input');
+oSeqNoObj.name = 'returnUrl';
+oSeqNoObj.type = 'hidden';
+oSeqNoObj.value = returnUrl;
+oForm.appendChild(oSeqNoObj);
+if (sUseLoginKeepingIp != undefined) {
+oSeqNoObj = document.createElement('input');
+oSeqNoObj.name = 'use_login_keeping_ip';
+oSeqNoObj.type = 'hidden';
+oSeqNoObj.value = sUseLoginKeepingIp;
+oForm.appendChild(oSeqNoObj);
+}
+oForm.submit();
+isUseLoginKeepingSubmit = true;
+}
+isUseLoginKeeping();
+} catch(e) {
+}
+var bUseElastic = false;
+var sSearchBannerUseFlag = 'F';
+CAFE24.SHOP_CURRENCY_INFO = {"1":{"aShopCurrencyInfo":{"currency_code":"KRW","currency_no":"410","currency_symbol":"\uffe6","currency_name":"South Korean won","currency_desc":"\uffe6 \uc6d0 (\ud55c\uad6d)","decimal_place":0,"round_method_type":"F"},"aShopSubCurrencyInfo":null,"aBaseCurrencyInfo":{"currency_code":"KRW","currency_no":"410","currency_symbol":"\uffe6","currency_name":"South Korean won","currency_desc":"\uffe6 \uc6d0 (\ud55c\uad6d)","decimal_place":0,"round_method_type":"F"},"fExchangeRate":1,"fExchangeSubRate":null,"aFrontCurrencyFormat":{"head":"","tail":"\uc6d0"},"aFrontSubCurrencyFormat":{"head":"","tail":""}}}; var SHOP_CURRENCY_INFO = CAFE24.SHOP_CURRENCY_INFO;
+if (typeof CAFE24.SHOP_FRONT_NEW_OPTION_COMMON !== "undefined") {CAFE24.SHOP_FRONT_NEW_OPTION_COMMON.initObject();}
+if (typeof CAFE24.SHOP_FRONT_NEW_OPTION_BIND !== "undefined") {CAFE24.SHOP_FRONT_NEW_OPTION_BIND.initChooseBox();}
+if (typeof CAFE24.SHOP_FRONT_NEW_OPTION_DATA !== "undefined") {CAFE24.SHOP_FRONT_NEW_OPTION_DATA.initData();}
+if (typeof CAFE24.SHOP_FRONT_NEW_LIKE_COMMON !== "undefined") {CAFE24.SHOP_FRONT_NEW_LIKE_COMMON.init({"bIsUseLikeProduct":true,"bIsUseLikeCategory":false});}
+if (typeof CAFE24.SHOP_FRONT_REVIEW_TALK_REVIEW_COUNT !== "undefined") {CAFE24.SHOP_FRONT_REVIEW_TALK_REVIEW_COUNT.bIsReviewTalk = 'F';}
+var basket_result = '/product/add_basket.html';
+var basket_option = '/product/basket_option.html';
+document.oncontextmenu=function(){return false;}
+var aPopupListData = {"aPopupList":"[{\"type\":\"L\",\"child_type\":\"W\",\"idx\":1,\"file\":\"\\\/popup\\\/popup_1.html\",\"size\":\"400*350\",\"position\":\"50*50\",\"title\":\"2022\\uc124\\ubc30\\uc1a1\\uc548\\ub0b4\",\"open\":false}]","aPopupCouponList":[],"sIsAuthGuidePopup":"","sIsUpdateEventGuidePopup":"","sIsLifetimeEventGuidePopup":"","sPopupPage":"F"};
+var aLogData = {"log_server1":"eclog2-225.cafe24.com","log_server2":"elg-db-svcm-269.cafe24.com","mid":"hpercent","stype":"e","domain":"","shop_no":1,"lang":"ko_KR","ver":2,"hash":"","ca":"cfa-js.cafe24.com\/cfa.js","etc":""};
+var sMileageName = '적립금';
+var sMileageUnit = '[:PRICE:]원';
+var sDepositName = '예치금';
+var sDepositUnit = '원';
+var EC_ASYNC_LIVELINKON_ID = '';
+if (EC$('[async_section=before]').length > 0) {
+EC$('[async_section=before]').addClass('displaynone');
+}
+
+</script></body></html>

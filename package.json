@@ -11,7 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "@types/node": "^18.0.6",
-    "mkdirp": "^1.0.4",
+    "mkdirp": "^0.5.5",
     "node-fetch": "^3.2.6",
     "slug": "^8.2.2",
     "superagent": "^8.0.3"
