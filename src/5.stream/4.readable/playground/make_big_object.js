@@ -11,10 +11,11 @@ const filePath = join(__dirname, "json", "big.json");
 const bws = createWriteStream(filePath);
 
 mkdirp(dirname(filePath)).then(() => {
-    bws.write("{");
-    for (let i = 0; i < 500000; i++) {
-        bws.write(`"a${i}": ${i},`, "UTF-8");
-    }
-    bws.write('"a": 1', "UTF-8");
-    bws.write("}");
+  bws.write("{");
+  // repl 에서는 2백만이 한계 ㅋㅋ
+  for (let i = 0; i < 1000000; i++) {
+    bws.write(`"a${i}": ${i},`, "UTF-8");
+  }
+  bws.write('"a": 1', "UTF-8");
+  bws.write("}");
 });

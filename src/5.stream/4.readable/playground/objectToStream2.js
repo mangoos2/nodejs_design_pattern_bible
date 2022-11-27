@@ -21,8 +21,8 @@ let prevNum = 0;
 const rJson = new Readable({
   read(size) {
     for (let i = 0; i < iter.length; i++) {
-      console.log("iter: %o", iter[i]);
-      if ( i === iter.length - 1) this.push(null);
+      // console.log("iter: %o", iter[i]);
+      if (i === iter.length - 1) this.push(null);
       else this.push(iter[i]);
     }
   },
@@ -31,9 +31,9 @@ const rJson = new Readable({
 
 
 rJson.on("data", (chunk) => {
-  console.log("chunk: %o", chunk[1]);
+  // console.log("chunk: %o", chunk[1]);
+  console.log("prevNum: %s", prevNum);
   prevNum += chunk[1];
-  console.log(prevNum)
 });
 
 rJson.on("end", () => console.log("end: %s", prevNum));
