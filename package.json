@@ -19,5 +19,8 @@
     "node-fetch": "^3.2.6",
     "slug": "^8.2.2",
     "superagent": "^8.0.3"
+  },
+  "devDependencies": {
+    "csv-parse": "^5.3.3"
   }
 }

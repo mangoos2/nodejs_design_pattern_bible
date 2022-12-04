@@ -12,6 +12,7 @@ class ToFileStream extends Writable {
     super({ ...options, objectMode: true });
   }
 
+  // cb 작업이 완료될 때 호출, 필요한 경우 stream 에서 발생한 error 객체 전달할 때 사용 등
   _write(chunk, encoding, cb) {
     mkdirp(dirname(chunk.path))
       .then(() => fs.writeFile(chunk.path, chunk.content))
